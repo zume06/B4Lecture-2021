@@ -93,10 +93,6 @@ def main(args):
     overlap = args.overlap
 
     wave_data, sr = librosa.load(data_path)
-    plt.figure()
-    librosa.display.waveplot(wave_data, sr=sr)
-    plt.ylabel("Magnitude")
-    plt.xlabel("Time [s]")
 
     cs = stft(wave_data)
 
@@ -104,24 +100,27 @@ def main(args):
     amplitude, phase = librosa.magphase(cs)
     # amplitude -> db
     db = librosa.amplitude_to_db(np.abs(amplitude))
-    plt.figure()
-    librosa.display.specshow(db, sr=sr, x_axis='time', y_axis='log')
-    plt.ylabel("Frequency [Hz]")
-    plt.xlabel("Time [s]")
 
     inv_data = instft(cs.T)
-    plt.figure()
-    librosa.display.waveplot(inv_data, sr=sr)
-    plt.ylabel("Magnitude")
-    plt.xlabel("Time [s]")
 
-    # save images for pdf
-    pdf = PdfPages('./result/result.pdf')
-    fignums = plt.get_fignums()
-    for fignum in fignums:
-        plt.figure(fignum)
-        pdf.savefig()
-    pdf.close()
+    fig, ax = plt.subplots(nrows=3, ncols=1)
+    fig.subplots_adjust(hspace=0.5)
+
+    librosa.display.waveplot(wave_data, sr=sr, x_axis='time', ax=ax[0])
+    ax[0].set(title='Original', xlabel="Time [s]", ylabel="Magnitude")
+    ax[0].label_outer()
+
+    spec_img = librosa.display.specshow(
+        db, sr=sr, x_axis='time', y_axis='log', ax=ax[1])
+    fig.colorbar(spec_img, ax=ax[1])
+    ax[1].set(title='Spectrum', xlabel="Time [s]", ylabel="Frequency [Hz]")
+    ax[1].label_outer()
+
+    librosa.display.waveplot(inv_data, sr=sr, x_axis='time', ax=ax[2])
+    ax[2].set(title='Inversed', xlabel="Time [s]", ylabel="Magnitude")
+    ax[2].label_outer()
+
+    plt.savefig("./result/result.pdf")
 
 
 if __name__ == "__main__":
