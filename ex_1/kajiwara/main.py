@@ -10,6 +10,7 @@ from pathlib import Path
 def stft(data, win_size=1024, overlap=0.5):
     '''
     stft transform data by short-time Fourier transform
+    return complex-valued spectrogram
 
     Args
     data: ndarray
@@ -38,10 +39,20 @@ def stft(data, win_size=1024, overlap=0.5):
     #     x = np.fft.fft(x)
     #     result.append(x)
     
-    # shape: (ite, 複素信号) > (複素信号, ite)
+    # shape: (ite, complex-valued spectrogram) -> (complex-valued spectrogram, ite)
     return np.array(result).T
 
 def instft(data, win_size=1024, overlap=0.5):
+    '''
+    instft transform data by inverse short-time Fourier transform
+    return 1D array
+
+    Args
+    data: ndarray
+    win_size: int
+    overlap: float
+    '''
+
     shift_size = int(win_size*overlap)
     ite = data.shape[0]
     window = np.hamming(win_size)
@@ -60,12 +71,12 @@ def main(data_path, win_size, overlap):
     librosa.display.waveplot(wave_data, sr=sr)
 
     cs = stft(wave_data)
-    # 振幅スペクトルと位相スペクトルの抽出
-    mag, phase = librosa.magphase(cs)  
-    # 振幅スペクトルをdB単位に変換
-    mag_db = librosa.amplitude_to_db(np.abs(mag))
+    # extract magnitude (amplitude spectrum) and phase (phase spectrum)
+    amplitude, phase = librosa.magphase(cs)
+    # amplitude -> db
+    db = librosa.amplitude_to_db(np.abs(amplitude))
     plt.figure()
-    librosa.display.specshow(mag_db, sr=sr, x_axis='time', y_axis='log')
+    librosa.display.specshow(db, sr=sr, x_axis='time', y_axis='log')
 
     inv_data = instft(cs.T)
     plt.figure()
