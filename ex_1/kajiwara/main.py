@@ -38,7 +38,6 @@ def main(data_path, win_size, overlap):
     fig.savefig("./result/original.png")
 
     cs = stft(wave_data)
-    print(cs.shape)
 
     # 振幅スペクトルと位相スペクトルの抽出
     mag, phase = librosa.magphase(cs)  
