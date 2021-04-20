@@ -95,18 +95,25 @@ def main(args):
     wave_data, sr = librosa.load(data_path)
     plt.figure()
     librosa.display.waveplot(wave_data, sr=sr)
+    plt.ylabel("Magnitude")
+    plt.xlabel("Time [s]")
 
     cs = stft(wave_data)
+
     # extract magnitude (amplitude spectrum) and phase (phase spectrum)
     amplitude, phase = librosa.magphase(cs)
     # amplitude -> db
     db = librosa.amplitude_to_db(np.abs(amplitude))
     plt.figure()
     librosa.display.specshow(db, sr=sr, x_axis='time', y_axis='log')
+    plt.ylabel("Frequency [Hz]")
+    plt.xlabel("Time [s]")
 
     inv_data = instft(cs.T)
     plt.figure()
     librosa.display.waveplot(inv_data, sr=sr)
+    plt.ylabel("Magnitude")
+    plt.xlabel("Time [s]")
 
     # save images for pdf
     pdf = PdfPages('./result/result.pdf')
