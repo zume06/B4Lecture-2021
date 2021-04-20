@@ -7,6 +7,9 @@ from matplotlib.backends.backend_pdf import PdfPages
 import sys
 import argparse
 from pathlib import Path
+from datetime import datetime
+
+TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
 
 def stft(data, win_size=1024, overlap=0.5):
@@ -88,13 +91,12 @@ def instft(data, win_size=1024, overlap=0.5):
 
 
 def main(args):
-    data_path = args.data_path
-    win_size = args.win_size
-    overlap = args.overlap
+    data_path = Path(args.data_path)
+    result_path = Path(args.save_path)
 
     wave_data, sr = librosa.load(data_path)
 
-    cs = stft(wave_data)
+    cs = stft(wave_data, win_size=1024, overlap=0.5)
 
     # extract magnitude (amplitude spectrum) and phase (phase spectrum)
     # amplitude, phase = librosa.magphase(cs)
@@ -120,17 +122,17 @@ def main(args):
     ax[2].set(title='Inversed', xlabel="Time [s]", ylabel="Magnitude")
     ax[2].label_outer()
 
-    plt.savefig("./result/result.pdf")
-    plt.savefig("./result.png")
+    timestamp = datetime.now().strftime(TIME_TEMPLATE)
+    plt.savefig(result_path.joinpath(timestamp+'-result.pdf'))
+    plt.savefig(result_path.joinpath(timestamp+'-result.png'))
 
 
 if __name__ == "__main__":
-    description = 'Example: python main.py sample.wav 1024 0.5'
+    description = 'Example: python main.py ./sample.wav'
     parser = argparse.ArgumentParser(description=description)
-
     parser.add_argument('data_path', help='path of data')
-    parser.add_argument('win_size', help='Window size')
-    parser.add_argument('overlap', help='overlap size')
+    parser.add_argument('-s', '--save_path', default='./',
+                        help='path to save the result')
 
     args = parser.parse_args()
 
