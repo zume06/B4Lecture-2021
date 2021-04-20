@@ -5,17 +5,27 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 import sys
+import argparse
 from pathlib import Path
+
 
 def stft(data, win_size=1024, overlap=0.5):
     '''
     stft transform data by short-time Fourier transform
-    return complex-valued spectrogram
 
-    Args
+    Parameters
+    ----------
     data: ndarray
+        waveform data
     win_size: int
+        window size
     overlap: float
+        overlap size
+
+    Returns
+    -------
+    cv_spec: ndarray
+        complex-valued spectrogram
     '''
 
     data_length = len(data)
@@ -23,14 +33,14 @@ def stft(data, win_size=1024, overlap=0.5):
     ite = int((data_length - shift_size) / shift_size)
     window = np.hamming(win_size)
 
-    result = []
+    cv_spec = []
     for j in range(0,  data_length, shift_size):
         x = data[j:j+win_size]
         if win_size > len(x):
             break
         x = window * x
         x = np.fft.fft(x)
-        result.append(x)
+        cv_spec.append(x)
 
     # result = []
     # for i in range(ite):
@@ -38,34 +48,50 @@ def stft(data, win_size=1024, overlap=0.5):
     #     x = window * x
     #     x = np.fft.fft(x)
     #     result.append(x)
-    
+
     # shape: (ite, complex-valued spectrogram) -> (complex-valued spectrogram, ite)
-    return np.array(result).T
+    cv_spec = np.array(cv_spec).T
+    return cv_spec
+
 
 def instft(data, win_size=1024, overlap=0.5):
     '''
     instft transform data by inverse short-time Fourier transform
-    return 1D array
 
-    Args
+    Parameters
+    ----------
     data: ndarray
+        complex-valued spectrogram
     win_size: int
+        window size
     overlap: float
+        overlap size
+
+    Returns
+    -------
+    wave_data: ndarray
+        waveform data
     '''
 
     shift_size = int(win_size*overlap)
     ite = data.shape[0]
     window = np.hamming(win_size)
 
-    result = np.zeros(ite*shift_size+win_size)
+    wave_data = np.zeros(ite*shift_size+win_size)
     for i in range(ite):
         x = data[i]
         x = np.fft.ifft(x).real * win_size
-        result[i*shift_size:i*shift_size+win_size] = result[i*shift_size:i*shift_size+win_size] + x
+        wave_data[i*shift_size:i*shift_size+win_size] = wave_data[
+            i * shift_size:i*shift_size+win_size] + x
 
-    return result
+    return wave_data
 
-def main(data_path, win_size, overlap):
+
+def main(args):
+    data_path = args.data_path
+    win_size = args.win_size
+    overlap = args.overlap
+
     wave_data, sr = librosa.load(data_path)
     plt.figure()
     librosa.display.waveplot(wave_data, sr=sr)
@@ -92,9 +118,13 @@ def main(data_path, win_size, overlap):
 
 
 if __name__ == "__main__":
-    args = sys.argv
-    data_path = args[1]
-    win_size = args[2]
-    overlap = args[3]
+    description = 'Example: python main.py sample.wav 1024 0.5'
+    parser = argparse.ArgumentParser(description=description)
 
-    main(data_path, win_size, overlap)
+    parser.add_argument('data_path', help='path of data')
+    parser.add_argument('win_size', help='Window size')
+    parser.add_argument('overlap', help='overlap size')
+
+    args = parser.parse_args()
+
+    main(args)
