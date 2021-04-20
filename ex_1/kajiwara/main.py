@@ -101,10 +101,10 @@ def main(args):
     # amplitude -> db
     db = librosa.amplitude_to_db(np.abs(amplitude))
 
-    inv_data = instft(cs.T)
+    inv_data = instft(cs.T)/1000
 
     fig, ax = plt.subplots(nrows=3, ncols=1)
-    fig.subplots_adjust(hspace=0.5)
+    fig.subplots_adjust(hspace=01.0)
 
     librosa.display.waveplot(wave_data, sr=sr, x_axis='time', ax=ax[0])
     ax[0].set(title='Original', xlabel="Time [s]", ylabel="Magnitude")
@@ -121,6 +121,7 @@ def main(args):
     ax[2].label_outer()
 
     plt.savefig("./result/result.pdf")
+    plt.savefig("./result.png")
 
 
 if __name__ == "__main__":
