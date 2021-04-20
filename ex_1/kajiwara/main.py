@@ -97,9 +97,9 @@ def main(args):
     cs = stft(wave_data)
 
     # extract magnitude (amplitude spectrum) and phase (phase spectrum)
-    amplitude, phase = librosa.magphase(cs)
+    # amplitude, phase = librosa.magphase(cs)
     # amplitude -> db
-    db = librosa.amplitude_to_db(np.abs(amplitude))
+    db = librosa.amplitude_to_db(np.abs(cs))
 
     inv_data = instft(cs.T)/1000
 
