@@ -130,12 +130,13 @@ if __name__ == "__main__":
                              x_axis="time",
                              y_axis="log",
                              cmap="magma")
+    plt.colorbar(format='%02.0f dB')
     plt.title("Spectrogram")
     plt.xlabel("time")
     plt.ylabel("frequency")
     
     ## reconstruction data
-    plt.colorbar(format='%02.0f dB')
+    
     plt.subplot(3, 1, 3)
     plt.plot(time, reconst)
     plt.title("Inversed")
