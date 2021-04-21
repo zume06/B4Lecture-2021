@@ -6,15 +6,8 @@ import scipy
 
 import pdb
 
-
-def calc_fft(data, samplerate):
-    spectrum = scipy.fftpack.fft(data)
-    amp = np.sqrt((spectrum.real ** 2) + (spectrum.imag ** 2))
-    amp = amp / (len(data) / 2)
-    phase = np.arctan2(spectrum.imag, spectrum.real)
-    phase = np.degrees(phase)
-    freq = np.linspace(0, samplerate, len(data))
-    return spectrum, amp, phase, freq
+def specplot(mat, sr, frames):
+    plt.imshow(mat, aspect="auto", extent=[0, frames / sr, 0, sr//2])
 
 def stft(data, win_len):
     start = 0
@@ -37,28 +30,44 @@ def stft(data, win_len):
     spec = []
     for short_slice in slices:
         fft_result = np.fft.fft(short_slice)
-        spec.append(np.abs(fft_result))    
-    freqs = np.fft.fftfreq(len(fft_result)) 
-    spec = np.array(spec)
-    pdb.set_trace()
-    return spec
+        spec.append(fft_result)
+        # spec.append(np.abs(fft_result))    
+    spec = np.array(spec).T
+    abs_spec = np.abs(spec)
+    return spec, abs_spec
+
+def istft(spec, win_len, wav_len):
+    ifft_slices = [] 
+    start = 0
+    signal = np.zeros(wav_len)
+    for slice in spec.T:
+        # pdb.set_trace()
+        ifft_result = np.fft.ifft(slice)
+        if start+win_len <= wav_len:
+            signal[start: start+win_len] += np.real(ifft_result)
+        else:
+            signal[start: wav_len] += np.real(ifft_result[0: wav_len - start])
+        start += win_len // 2
+    return signal
+
+
+    
 
 if __name__ == "__main__":
-    input_wav = '/home/kevingeng/nas01/home/JNAS/WAVES_DT/F002/NP/NF002001_DT.wav'
+    # input_wav = '/home/kevingeng/nas01/home/JNAS/WAVES_DT/F002/NP/NF002001_DT.wav'
+    input_wav = '/home/kevingeng/B4Lecture-2021/ex_1/arctic_b0340.wav'
     y, sr = librosa.load(input_wav)
-    win_len = 1024
-    spec = stft(y, win_len=win_len)
-    pdb.set_trace()
-    # amp = np.abs(a)
-    # N = len(amp)
-    # amp_normal = amp / (N / 2)
-    # amp_normal[0] /= 2
-    # # pdb.set_trace()
+    plt.subplot(311)
+    plt.plot(y)
 
-    # # plt.imshow(amp_normal)
-    # amp_normal_db = librosa.amplitude_to_db(amp_normal, ref=np.max)
-    # librosa.display.specshow(amp_normal_db, sr=sr,
-    #                          hop_length=16000, y_axis='linear')
-    # # plt.plot(y)
-
-    # plt.show()
+    win_len = 512
+    spec, abs_spec = stft(y, win_len=win_len)    
+    abs_spec = abs_spec[len(abs_spec[0]//2): -1] # 対称のため半分しか取らない
+    mag_spec = 20 * np.log10(abs_spec)
+    plt.subplot(312)
+    specplot(mag_spec,sr=sr, frames=len(y))
+    
+    signal= istft(spec, win_len=win_len, wav_len=len(y))    
+    plt.subplot(313)
+    plt.plot(signal)
+    plt.show()
