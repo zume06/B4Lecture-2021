@@ -87,16 +87,8 @@ if __name__ == "__main__":
         os.mkdir(save_dir)
     
     # import data
-    wav_path = "./data/tsuchiya_normal_001.wav" 
+    wav_path = "./data/onso_balance_01_okaji.wav" 
     data, sr = librosa.load(wav_path, sr=None)
-    
-    # draw audio data
-    time = np.arange(0, len(data)/sr, 1/sr)
-    plt.plot(time, data)
-    plt.xlabel("time [sec]")
-    plt.ylabel("amplitude")
-    plt.savefig(save_dir+"/raw_data.jpg")
-    plt.close()
     
     # parameter
     n_fft = 1024
@@ -107,26 +99,9 @@ if __name__ == "__main__":
     spec = np.abs(stft_result[:int(n_fft/2), :])
     log_spec = 20 * np.log10(spec + sys.float_info.epsilon)
     
-    # draw log-spectrogram
-    plt.figure(figsize=(8,4))
-    librosa.display.specshow(log_spec)
-    plt.xlabel("time")
-    plt.ylabel("frequency")
-    plt.colorbar(format='%02.0f dB')
-    plt.savefig(save_dir+"/log_spectrogram.jpg")
-    plt.close()
-    
     # istft
     reconst = istft(stft_result, n_fft=n_fft, hop_length=hop_length).real
     reconst = reconst[:len(data)]
-    
-    # draw reconst audio data
-    time = np.arange(0, len(reconst)/sr, 1/sr)
-    plt.plot(time, reconst)
-    plt.xlabel("time [sec]")
-    plt.ylabel("amplitude")
-    plt.savefig(save_dir+"/reconst_data.jpg")
-    plt.close()
     
     # output the reconst audio wav
     sf.write("./data/reconst_audio.wav", reconst, sr)
@@ -134,3 +109,37 @@ if __name__ == "__main__":
     # compare the raw audio to reconst data
     rmse = np.sqrt(np.mean((data - reconst)**2))
     print(rmse)
+    
+    # draw three figures
+    time = np.arange(0, len(data)/sr, 1/sr)
+    frequency = np.fft.fftfreq(n_fft, d=1/sr)[:int(n_fft/2)]
+    plt.figure(figsize=(8,6))
+    plt.subplots_adjust(hspace=0.8)
+    ## original audio dat
+    plt.subplot(3, 1, 1)
+    plt.plot(time, data)
+    plt.title("original")
+    plt.xlabel("time [sec]")
+    plt.ylabel("amplitude")
+    
+    ## spectrogram
+    plt.subplot(3, 1, 2)
+    librosa.display.specshow(log_spec,
+                             sr=sr, 
+                             hop_length=hop_length, 
+                             x_axis="time",
+                             y_axis="log",
+                             cmap="magma")
+    plt.title("Spectrogram")
+    plt.xlabel("time")
+    plt.ylabel("frequency")
+    
+    ## reconstruction data
+    plt.colorbar(format='%02.0f dB')
+    plt.subplot(3, 1, 3)
+    plt.plot(time, reconst)
+    plt.title("Inversed")
+    plt.xlabel("time [sec]")
+    plt.ylabel("amplitude")
+    
+    plt.savefig(save_dir+"/result.jpg")
