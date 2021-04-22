@@ -2,7 +2,7 @@ import numpy as np
 import librosa
 import matplotlib.pyplot as plt
 import argparse
-import soundfile 
+import soundfile
 
 import pdb
 
@@ -71,7 +71,6 @@ if __name__ == "__main__":
                    help="toggle for generation of wav file after ifft")
 
     args = p.parse_args()
-    pdb.set_trace()
 
     input_wav = args.input_file
     win_len = args.win_len
@@ -112,10 +111,11 @@ if __name__ == "__main__":
     # plt.show()
     if args.output_tag == '':
         output_id = input_wav.split('/')[-1].split('.')[0] + '_win_type_' + \
-            args.window_type + '_win_len_' + str(args.win_len) + '_sr_' + str(args.sr)
+            args.window_type + '_win_len_' + \
+            str(args.win_len) + '_sr_' + str(args.sr)
     else:
         output_id = p.output_id
     plt.savefig(output_id + ".png")
 
     if args.output_wav_toggle:
-        soundfile.write(output_id+ '.wav', signal, samplerate==args.sr)
+        soundfile.write(output_id + '.wav', signal, samplerate == args.sr)
