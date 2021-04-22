@@ -94,6 +94,9 @@ def main(args):
     data_path = Path(args.data_path)
     result_path = Path(args.save_path)
 
+    assert data_path.exists(), '{} is not exist'.format(data_path)
+    assert result_path.exists(), '{} is not exist'.format(result_path)
+
     wave_data, sr = librosa.load(data_path)
 
     cs = stft(wave_data, win_size=1024, overlap=0.5)
