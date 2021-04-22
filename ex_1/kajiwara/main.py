@@ -97,8 +97,10 @@ def main(args):
     assert data_path.exists(), '{} is not exist'.format(data_path)
     assert result_path.exists(), '{} is not exist'.format(result_path)
 
+    # load data
     wave_data, sr = librosa.load(data_path)
 
+    # stft
     cs = stft(wave_data, win_size=1024, overlap=0.5)
 
     # extract magnitude (amplitude spectrum) and phase (phase spectrum)
@@ -106,8 +108,10 @@ def main(args):
     # amplitude -> db
     db = librosa.amplitude_to_db(np.abs(cs))
 
+    # inverse conversion
     inv_data = instft(cs.T)/1000
 
+    # plotting
     fig, ax = plt.subplots(nrows=3, ncols=1)
     fig.subplots_adjust(hspace=01.0)
 
@@ -119,12 +123,23 @@ def main(args):
         db, sr=sr, x_axis='time', y_axis='log', ax=ax[1])
     fig.colorbar(spec_img, ax=ax[1])
     ax[1].set(title='Spectrum', xlabel="Time [s]", ylabel="Frequency [Hz]")
+    ax[1].yaxis.set_ticks([0, 128, 512, 2048, 8192])
     ax[1].label_outer()
 
     librosa.display.waveplot(inv_data, sr=sr, x_axis='time', ax=ax[2])
     ax[2].set(title='Inversed', xlabel="Time [s]", ylabel="Magnitude")
     ax[2].label_outer()
 
+    # graph positioning
+    ax_pos_0 = ax[0].get_position()
+    ax_pos_1 = ax[1].get_position()
+    ax_pos_2 = ax[2].get_position()
+    ax[0].set_position(
+        [ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height])
+    ax[2].set_position(
+        [ax_pos_2.x0, ax_pos_2.y0, ax_pos_1.width, ax_pos_1.height])
+
+    # save result
     timestamp = datetime.now().strftime(TIME_TEMPLATE)
     plt.savefig(result_path.joinpath(timestamp+'-result.pdf'))
     plt.savefig(result_path.joinpath(timestamp+'-result.png'))
