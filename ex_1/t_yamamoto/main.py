@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 import os
-from scipy import signal
 
 
 def stft(y, hop=0.5, win_length=1024):
@@ -57,17 +56,18 @@ def istft(F, hop=0.5, win_length=1024):
             Time domain signal.
     """
 
-    F = F.T
+    F = F.T / 1000
     hop_length = int(win_length * hop)
     Fnum = F.shape[0]
-    window = np.hamming(win_length)
+    # window = np.hamming(win_length)
 
-    y = np.zeros(Fnum * hop_length + win_length, dtype=complex)
+    y = np.zeros(Fnum * hop_length + win_length)
     for i in range(Fnum):
         tmp = F[i]
-        tmp = np.fft.ifft(tmp).real
-        tmp = tmp
+        tmp = np.fft.ifft(tmp).real * win_length
+        y[hop_length * i : hop_length * i + win_length] += tmp
 
+    print(y)
     return y
 
 
@@ -86,10 +86,10 @@ def main():
     # plt.rcParams["font.family"] = "Times New Roman"
     # plt.rcParams["font.size"] = 12
 
-    # draw original wave plot
+    # draw original signal
     librosa.display.waveplot(wav, sr=sr, ax=ax[0])
     ax[0].set(title="Original signal", xlabel=None, ylabel="Magnitude")
-    ax[0].label_outer()
+    # ax[0].label_outer()
 
     # parameter
     hop = 0.5
@@ -97,19 +97,33 @@ def main():
 
     # STFT
     amp = stft(wav, hop=hop, win_length=win_length)
-    # amplitude to dB
-    db = librosa.amplitude_to_db(np.abs(amp), ref=np.max)
+    # convert an amplitude spectrogram to dB-scaled spectrogram
+    db = librosa.amplitude_to_db(np.abs(amp))
     # db = librosa.amplitude_to_db(np.abs(librosa.stft(wav)), ref=np.max)
     # draw spectrogram (log scale)
-    img = librosa.display.specshow(db, sr=sr, y_axis="log", ax=ax[1])
-    ax[1].set(title="Spectrogram", xlabel=None, ylabel="Frequency [kHz]")
-    fig.colorbar(img, ax=ax[1], format="%+2.f dB")
+    img = librosa.display.specshow(
+        db, sr=sr, x_axis="time", y_axis="log", ax=ax[1], cmap="plasma"
+    )
+    ax[1].set(title="Spectrogram", xlabel=None, ylabel="Frequency [Hz]")
+    ax[1].set_yticks([0, 128, 512, 2048, 8192])
+    fig.colorbar(img, aspect=10, pad=0.01, extend="both", ax=ax[1], format="%+2.f dB")
 
     # inverse-STFT
-    inv_wav = istft(amp)
-    # draw inverse wave plot
+    inv_wav = istft(amp, hop=hop, win_length=win_length)
+    # draw re-synthesized signal
     librosa.display.waveplot(inv_wav, sr=sr, ax=ax[2])
     ax[2].set(title="Re-synthesized signal", xlabel="Time [s]", ylabel="Magnitude")
+
+    """
+    # graph positioning
+    ax_pos_0 = ax[0].get_position()
+    ax_pos_1 = ax[1].get_position()
+    ax_pos_2 = ax[2].get_position()
+    ax[0].set_position([ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height])
+    ax[2].set_position([ax_pos_2.x0, ax_pos_2.y0, ax_pos_1.width, ax_pos_1.height])
+    """
+    fig.tight_layout()
+    fig.align_labels()
 
     # save and show figure of result
     plt.savefig(dir + "ex1_result.png")
