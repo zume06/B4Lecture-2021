@@ -84,10 +84,6 @@ def main():
 
     fig, ax = plt.subplots(nrows=3, ncols=1, sharex=True)
     plt.subplots_adjust(hspace=0.6)
-    # params = {"axes.labelsize": 16, "axes.titlesize": 20}
-    # plt.rcParams.update(params)
-    # plt.rcParams["font.family"] = "Times New Roman"
-    # plt.rcParams["font.size"] = 12
 
     # draw original signal
     librosa.display.waveplot(wav, sr=sr, color="g", ax=ax[0])
