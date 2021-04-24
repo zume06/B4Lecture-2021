@@ -3,15 +3,14 @@ import librosa
 import librosa.display
 from matplotlib import pyplot as plt
 
-def stft(signal, n_fft=512, n_shift=256, window=np.hamming(512)):
+def stft(signal, n_fft=512):
   """
   Args:
     signal  (ndarray, shape=(length,)):input signal
     n_fft   (int, optional)           :window width
-    n_shift (int, optional)           :stride size
-    window  (ndarray, shape=(n_fft,)) :window function
 
   """
+  n_shift = n_fft//2
 
   # get signal length
   length = signal.shape[0]
@@ -28,7 +27,7 @@ def stft(signal, n_fft=512, n_shift=256, window=np.hamming(512)):
     signal_cut = signal[start: start + n_fft]
 
     # apply window function
-    signal_cut = signal_cut * window
+    signal_cut = signal_cut * np.hamming(n_fft)
 
     # fast fourier transform
     spectrogram[:, i] = np.fft.rfft(signal_cut)
@@ -38,13 +37,11 @@ def stft(signal, n_fft=512, n_shift=256, window=np.hamming(512)):
   return spectrogram
 
 
-def istft(spectrogram, n_shift=256, window=np.hamming(512)):
+def istft(spectrogram):
   """
   Args:
     spectrogram (ndarray, shape=(n_fft//2+1, n_frame))  :input spectrogram
-    n_shift     (int, optional)                         :the same stride size used in stft
-    window      (ndarray, shape=(n_fft,))               :the same window function used in stft
-
+  
   """
 
   # (frequency, frame) -> (frame, frequency)
@@ -53,11 +50,13 @@ def istft(spectrogram, n_shift=256, window=np.hamming(512)):
   # inverse fast fourier transform
   signal_cut = np.fft.irfft(spectrogram_t)
 
-  # restore to pre-windowed
-  signal_cut = signal_cut / window
+  n_fft = signal_cut.shape[1]
 
-  # remove overlap
-  signal_cut = signal_cut[:,:n_shift]
+  # merge overlap part
+  first = signal_cut[:, :n_fft//2]
+  latter = signal_cut[:, n_fft//2:]
+  signal_cut = first
+  signal_cut[1:] = signal_cut[1:] + latter[:-1]
 
   # concatnate each frame
   signal = signal_cut.reshape(-1)
@@ -70,15 +69,14 @@ if __name__ == "__main__":
   origin_signal, rate = librosa.load('sample.wav')
 
   n_fft = 512
-  n_shift = 256
 
   # stft
-  spectrogram = stft(origin_signal, n_fft, n_shift, np.hamming(n_fft))
+  spectrogram = stft(origin_signal, n_fft)
 
   spectrogram_db = librosa.amplitude_to_db(np.abs(spectrogram))
 
   # istft
-  resynthesized_signal = istft(spectrogram, n_shift, np.hamming(n_fft))
+  resynthesized_signal = istft(spectrogram)
 
   # plot
   fig, ax = plt.subplots(3, 1)
@@ -87,7 +85,7 @@ if __name__ == "__main__":
   librosa.display.waveplot(origin_signal, sr=rate, x_axis='time', ax=ax[0])
   ax[0].set(title='Original signal', xlabel='Time[sec]', ylabel='Magnitude')
   
-  img = librosa.display.specshow(spectrogram_db, sr=rate, hop_length=n_shift, x_axis='time', y_axis='linear', ax=ax[1])
+  img = librosa.display.specshow(spectrogram_db, sr=rate, hop_length=n_fft//2, x_axis='time', y_axis='linear', ax=ax[1])
   ax[1].set(title='Spectrogram', xlabel='Time[sec]', ylabel='Frequency[Hz]')
   fig.colorbar(img, ax=ax[1])
 
