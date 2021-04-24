@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 import os
+import warnings
+
+# ignore warnings
+warnings.filterwarnings("ignore")
 
 
 def stft(y, hop=0.5, win_length=1024):
@@ -67,7 +71,6 @@ def istft(F, hop=0.5, win_length=1024):
         tmp = np.fft.ifft(tmp).real * win_length
         y[hop_length * i : hop_length * i + win_length] += tmp
 
-    print(y)
     return y
 
 
@@ -77,7 +80,7 @@ def main():
     dir = os.path.dirname(__file__) + "/"
     # dir = "C:/Users/yamam/Desktop/lab/2021/B4Lecture-2021/ex_1/t_yamamoto/"
     audio_path = dir + "recording_b4lec_ex1.wav"
-    wav, sr = librosa.load(audio_path)
+    wav, sr = librosa.load(audio_path, mono=True)
 
     fig, ax = plt.subplots(nrows=3, ncols=1, sharex=True)
     plt.subplots_adjust(hspace=0.6)
@@ -87,7 +90,7 @@ def main():
     # plt.rcParams["font.size"] = 12
 
     # draw original signal
-    librosa.display.waveplot(wav, sr=sr, ax=ax[0])
+    librosa.display.waveplot(wav, sr=sr, color="g", ax=ax[0])
     ax[0].set(title="Original signal", xlabel=None, ylabel="Magnitude")
     # ax[0].label_outer()
 
@@ -111,18 +114,19 @@ def main():
     # inverse-STFT
     inv_wav = istft(amp, hop=hop, win_length=win_length)
     # draw re-synthesized signal
-    librosa.display.waveplot(inv_wav, sr=sr, ax=ax[2])
+    librosa.display.waveplot(inv_wav, sr=sr, color="g", ax=ax[2])
     ax[2].set(title="Re-synthesized signal", xlabel="Time [s]", ylabel="Magnitude")
 
-    """
-    # graph positioning
+    # graph adjustment
+    ax[0].set_xlim(0, 4)
+    ax[1].set_xlim(0, 4)
+    ax[2].set_xlim(0, 4)
     ax_pos_0 = ax[0].get_position()
     ax_pos_1 = ax[1].get_position()
     ax_pos_2 = ax[2].get_position()
     ax[0].set_position([ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height])
     ax[2].set_position([ax_pos_2.x0, ax_pos_2.y0, ax_pos_1.width, ax_pos_1.height])
-    """
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.align_labels()
 
     # save and show figure of result
