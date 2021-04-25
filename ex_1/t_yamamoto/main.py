@@ -35,11 +35,14 @@ def stft(y, hop=0.5, win_length=1024):
     F = []
     for i in range(int((ynum - hop_length) / hop_length)):
         tmp = y[i * hop_length : i * hop_length + win_length]
+        # multiplied by window finction
         tmp = tmp * window
-        tmp = np.fft.fft(tmp)
+        # Fast Fourier Transform (FFT)
+        tmp = np.fft.rfft(tmp)
         F.append(tmp)
 
-    F = np.array(F).T
+    # (frame, freq) -> (freq, frame)
+    F = np.transpose(F)
     return F
 
 
@@ -60,16 +63,17 @@ def istft(F, hop=0.5, win_length=1024):
             Time domain signal.
     """
 
-    F = F.T / 1000
     hop_length = int(win_length * hop)
-    Fnum = F.shape[0]
-    # window = np.hamming(win_length)
-
-    y = np.zeros(Fnum * hop_length + win_length)
-    for i in range(Fnum):
-        tmp = F[i]
-        tmp = np.fft.ifft(tmp).real * win_length
-        y[hop_length * i : hop_length * i + win_length] += tmp
+    window = np.hamming(win_length)
+    # (freq, frame) -> (frame, freq)
+    F = np.transpose(F)
+    # Inverse Fast Fourier Transform (IFFT)
+    tmp = np.fft.irfft(F)
+    # divided by window function
+    tmp = tmp / window
+    # remove overlap
+    tmp = tmp[:, :hop_length]
+    y = tmp.reshape(-1)
 
     return y
 
@@ -88,11 +92,11 @@ def main():
     # draw original signal
     librosa.display.waveplot(wav, sr=sr, color="g", ax=ax[0])
     ax[0].set(title="Original signal", xlabel=None, ylabel="Magnitude")
-    # ax[0].label_outer()
 
     # parameter
     hop = 0.5
     win_length = 1024
+    hop_length = int(win_length * hop)
 
     # STFT
     amp = stft(wav, hop=hop, win_length=win_length)
@@ -101,7 +105,13 @@ def main():
     # db = librosa.amplitude_to_db(np.abs(librosa.stft(wav)), ref=np.max)
     # draw spectrogram (log scale)
     img = librosa.display.specshow(
-        db, sr=sr, x_axis="time", y_axis="log", ax=ax[1], cmap="plasma"
+        db,
+        sr=sr,
+        hop_length=hop_length,
+        x_axis="time",
+        y_axis="log",
+        ax=ax[1],
+        cmap="plasma",
     )
     ax[1].set(title="Spectrogram", xlabel=None, ylabel="Frequency [Hz]")
     ax[1].set_yticks([0, 128, 512, 2048, 8192])
@@ -114,9 +124,6 @@ def main():
     ax[2].set(title="Re-synthesized signal", xlabel="Time [s]", ylabel="Magnitude")
 
     # graph adjustment
-    ax[0].set_xlim(0, 4)
-    ax[1].set_xlim(0, 4)
-    ax[2].set_xlim(0, 4)
     ax_pos_0 = ax[0].get_position()
     ax_pos_1 = ax[1].get_position()
     ax_pos_2 = ax[2].get_position()
