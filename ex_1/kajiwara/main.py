@@ -1,13 +1,13 @@
+import sys
+import argparse
+from pathlib import Path
+from datetime import datetime
+
 import numpy as np
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-
-import sys
-import argparse
-from pathlib import Path
-from datetime import datetime
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
