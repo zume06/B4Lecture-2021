@@ -9,7 +9,7 @@ from main import stft, instft
 
 def calc_process_time(args, func):
     start = time.perf_counter()
-    func(*args)
+    func(**args)
     end = time.perf_counter()
 
     return end - start
@@ -31,11 +31,12 @@ def main():
     fake_data = 2 * np.random.rand(22050*3) - 1
 
     # scipy
-    sp_res = calc_process_time([fake_data], sp.signal.spectrogram)
+    sp_res = calc_process_time(
+        {'x': fake_data, 'mode': 'complex'}, sp.signal.spectrogram)
     print("scipy.signal.spectrogram result: {}".format(sp_res))
 
     # mine
-    my_res = calc_process_time([fake_data], my_spectrogram)
+    my_res = calc_process_time({'data': fake_data}, my_spectrogram)
     print("my spectrogram result: {}".format(my_res))
 
 

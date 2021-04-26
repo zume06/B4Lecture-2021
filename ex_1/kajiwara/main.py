@@ -33,7 +33,6 @@ def stft(data, win_size=1024, overlap=0.5):
 
     data_length = len(data)
     shift_size = int(win_size*overlap)
-    ite = int((data_length - shift_size) / shift_size)
     window = np.hamming(win_size)
 
     cv_spec = []
@@ -44,13 +43,6 @@ def stft(data, win_size=1024, overlap=0.5):
         x = window * x
         x = np.fft.fft(x)
         cv_spec.append(x)
-
-    # result = []
-    # for i in range(ite):
-    #     x = data[i*shift_size:i*shift_size+win_size]
-    #     x = window * x
-    #     x = np.fft.fft(x)
-    #     result.append(x)
 
     # shape: (ite, complex-valued spectrogram) -> (complex-valued spectrogram, ite)
     cv_spec = np.array(cv_spec).T
