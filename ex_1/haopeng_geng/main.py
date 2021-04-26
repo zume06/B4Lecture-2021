@@ -3,7 +3,7 @@ import librosa
 import matplotlib.pyplot as plt
 import argparse
 import soundfile
-
+import os
 import pdb
 
 
@@ -116,7 +116,8 @@ if __name__ == "__main__":
             str(args.win_len) + '_sr_' + str(args.sr)
     else:
         output_id = p.output_id
-    plt.savefig(output_id + ".png")
+    
+    plt.savefig(os.path.join('fig', output_id + ".png"))
 
     if args.output_wav_toggle:
-        soundfile.write(output_id + '.wav', signal, samplerate=args.sr)
+        soundfile.write(os.path.join('wav',output_id + '.wav'), signal, samplerate=args.sr)
