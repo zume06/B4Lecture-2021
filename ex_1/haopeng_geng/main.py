@@ -10,6 +10,7 @@ import pdb
 def specplot(mat, sr, frames):
     plt.xlabel("Time [sec]")
     plt.ylabel("Frequency [Hz]")
+    plt.ylim(0, sr/2)    
     plt.imshow(mat, aspect="auto", extent=[0, frames / sr, 0, sr // 2])
 
 
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     signal = istft(spec, win_len=win_len, wav_len=len(y))
 
     # plot
-    plt.subplots_adjust()
+    # plt.subplots_adjust()
 
     # original signal
     plt.subplot(311)
@@ -118,4 +119,4 @@ if __name__ == "__main__":
     plt.savefig(output_id + ".png")
 
     if args.output_wav_toggle:
-        soundfile.write(output_id + '.wav', signal, samplerate == args.sr)
+        soundfile.write(output_id + '.wav', signal, samplerate=args.sr)
