@@ -33,15 +33,17 @@ def istft(spec, win_len, overlap, wav_len):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Filename')
     parser.add_argument("-f", dest= "filename", help='Enter Filename', required=True)
+    parser.add_argument("-fs", type = int, dest= "framesize", help='Enter Framesize', required=True)
+    parser.add_argument("-os", type = int, dest= "overlap", help='Enter Overlap size', required=True)
     args = parser.parse_args()
 
     # sampling rate = 44100Hz
     wave_array, sr = librosa.load(
         args.filename, sr=44100)
     # size of one frame of stft
-    frame_size = 300
+    frame_size = args.framesize
     # number of samples to overlap
-    overlap = 30
+    overlap = args.overlap
     # variable for window function
     window_func = signal.hamming(frame_size)
     # calculating the number of frames
