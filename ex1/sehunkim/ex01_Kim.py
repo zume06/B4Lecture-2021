@@ -4,14 +4,18 @@ import librosa.display
 from matplotlib import pyplot as plt
 from scipy.fft import fft, ifft
 from scipy import signal
+import argparse
 
-# sampling rate = 44100Hz
-wave_array, sr = librosa.load(
-    '/Users/sehunkim/Library/Mobile Documents/com~apple~CloudDocs/School/2021/TodaLab/Rinko/B4Lecture-2021/ex1/sehunkim/sample.wav')
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--decimal", dest="decimal", action="store")
+
+args = parser.parse_args()
+
+wave_array, sr = librosa.load(args.decimal)
 # size of one frame of stft
-frame_size = 300
+frame_size = 600
 # number of samples to overlap
-overlap = 70
+overlap = 300
 # variable for window function
 window_func = signal.hamming(frame_size)
 # calculating the number of frames
@@ -35,12 +39,11 @@ def stft(data_array, frame_size, overlap):
 
 
 def istft(data_array, frame_size, overlap):
-    result = np.array([])
+    result = np.zeros(len(wave_array))
     for frame_no in range(n_of_frame):
-        result = np.append(
-            result, ifft(
-                data_array[frame_no])[
-                :frame_size - overlap])
+        left = frame_no * (frame_size - overlap)        # left end of frame
+        result[left:left + frame_size] += ifft(data_array[frame_no])
+
     return result
 
 
@@ -65,8 +68,6 @@ plt.ylabel('Magnitude')
 
 # plot spectogram of the result of stft
 plt.subplot(3, 1, 2)
-print(db.shape)
-print(wave_array.shape)
 librosa.display.specshow(db, y_axis='linear')
 plt.colorbar(format='%+2.0f dB')
 plt.title('Spectogram')
