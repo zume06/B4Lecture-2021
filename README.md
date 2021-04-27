@@ -83,3 +83,5 @@
 [スライドの作り方](https://www.slideshare.net/ShinnosukeTakamichi/ss-48987441)
 
 [過去資料](https://sites.google.com/a/g.sp.m.is.nagoya-u.ac.jp/splocal-semi/b4-rinkou)
+
+[講義ビデオ](https://drive.google.com/drive/folders/1aOAgjTjUutiw3qwPwpRKhxDrnY0n5XEX?usp=sharing)
