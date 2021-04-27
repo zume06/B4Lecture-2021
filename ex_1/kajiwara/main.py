@@ -1,4 +1,5 @@
 import sys
+import time
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -122,6 +123,8 @@ def get_spectrogram(wave_data, win_size=1024, overlap=0.5, mode='normal', scale=
         spectrogram
     '''
 
+    start = time.perf_counter()
+
     if mode not in ['normal', 'faster']:
         raise ValueError(
             "Unknown value for mode {}, must be one of {'normal', 'faster'}".format(mode))
@@ -140,7 +143,8 @@ def get_spectrogram(wave_data, win_size=1024, overlap=0.5, mode='normal', scale=
         # extract magnitude (amplitude spectrum) and phase (phase spectrum)
         # amplitude, phase = librosa.magphase(cs)
         # amplitude -> db
-        spec = librosa.amplitude_to_db(np.abs(spec))
+        # spec = librosa.amplitude_to_db(np.abs(spec))
+        spec = np.log10(np.abs(spec)) * 10
 
     return spec
 
