@@ -49,6 +49,22 @@ def stft(data, win_size=1024, overlap=0.5):
     return cv_spec
 
 
+def faster_stft(data, win_size, overlap):
+    n_overlap = int(win_size * overlap)
+    window = np.hamming(win_size)
+
+    step = win_size - n_overlap
+    shape = data.shape[:-1] + ((data.shape[-1] - n_overlap) // step, win_size)
+    strides = data.strides[:-1] + (step * data.strides[-1], data.strides[-1])
+    reshaped_data = np.lib.stride_tricks.as_strided(
+        data, shape=shape, strides=strides)
+
+    cv_spec = reshaped_data * window
+    cv_spec = np.fft.fft(cv_spec, n=win_size)
+
+    return cv_spec.T
+
+
 def instft(data, win_size=1024, overlap=0.5):
     '''
     instft transform data by inverse short-time Fourier transform
@@ -82,6 +98,30 @@ def instft(data, win_size=1024, overlap=0.5):
     return wave_data
 
 
+def get_spectrogram(wave_data, win_size=1024, overlap=0.5, mode='normal', scale='db'):
+    if mode not in ['normal', 'faster']:
+        raise ValueError(
+            "Unknown value for mode {}, must be one of {'normal', 'faster'}".format(mode))
+
+    if scale not in ['db', 'amp']:
+        raise ValueError(
+            "Unknown value for scale {}, must be one of {'db', 'amp'}".format(mode))
+
+    func = stft
+    if mode == 'faster':
+        func = faster_stft
+
+    spec = func(wave_data, win_size=win_size, overlap=overlap)
+
+    if scale == 'db':
+        # extract magnitude (amplitude spectrum) and phase (phase spectrum)
+        # amplitude, phase = librosa.magphase(cs)
+        # amplitude -> db
+        spec = librosa.amplitude_to_db(np.abs(spec))
+
+    return spec
+
+
 def main(args):
     data_path = Path(args.data_path)
     result_path = Path(args.save_path)
@@ -92,16 +132,13 @@ def main(args):
     # load data
     wave_data, sr = librosa.load(data_path)
 
-    # stft
-    cs = stft(wave_data, win_size=1024, overlap=0.5)
-
-    # extract magnitude (amplitude spectrum) and phase (phase spectrum)
-    # amplitude, phase = librosa.magphase(cs)
-    # amplitude -> db
-    db = librosa.amplitude_to_db(np.abs(cs))
+    # get spectrogram
+    db_spec = get_spectrogram(wave_data, win_size=1024,
+                              overlap=0.5, mode='faster', scale='db')
 
     # inverse conversion
-    inv_data = instft(cs.T)/1000
+    cv = stft(wave_data)
+    inv_data = instft(cv.T)/1000
 
     # plotting
     fig, ax = plt.subplots(nrows=3, ncols=1)
@@ -112,7 +149,7 @@ def main(args):
     ax[0].label_outer()
 
     spec_img = librosa.display.specshow(
-        db, sr=sr, x_axis='time', y_axis='log', ax=ax[1])
+        db_spec, sr=sr, x_axis='time', y_axis='log', ax=ax[1])
     fig.colorbar(spec_img, ax=ax[1])
     ax[1].set(title='Spectrum', xlabel="Time [s]", ylabel="Frequency [Hz]")
     ax[1].yaxis.set_ticks([0, 128, 512, 2048, 8192])

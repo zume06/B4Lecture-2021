@@ -41,7 +41,7 @@ def main():
     res = {
         'scipy': [],
         'librosa': [],
-        'mine': []
+        'mine': [],
     }
 
     for i in range(10):
