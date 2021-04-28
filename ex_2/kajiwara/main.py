@@ -28,6 +28,8 @@ def main(args):
     wave_data_filtered = conv1d(wave_data, bpf)
     spec_filtered = spectrogram(wave_data_filtered)
 
+    fig, ax = plt.subplots(nrows=2, ncols=2)
+
     librosa.display.waveplot(wave_data, sr=sr, x_axis='time', ax=ax[0][0])
     ax[0][0].set(title='Original wave', xlabel="Time [s]", ylabel="Magnitude")
     ax[0][0].label_outer()
