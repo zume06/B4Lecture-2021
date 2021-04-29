@@ -139,8 +139,9 @@ if __name__ == "__main__":
     spectrogram_db2 = librosa.amplitude_to_db(np.abs(spectrogram2))
 
     # plot
+    plt.rcParams["figure.figsize"] = (12, 15)
     fig, ax = plt.subplots(4, 1)
-    fig.subplots_adjust(hspace=2.0)
+    fig.subplots_adjust(hspace=0.5)
 
     ax[0].plot(amp)
     ax[0].set(title="Filter amplitude", xlabel="Frequency[Hz]", ylabel="Amplitude")
