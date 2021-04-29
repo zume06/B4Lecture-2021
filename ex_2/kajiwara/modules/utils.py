@@ -1,4 +1,6 @@
 import numpy as np
+import librosa.display
+import matplotlib.pyplot as plt
 
 
 def conv1d(x, y):
@@ -26,6 +28,50 @@ def conv1d(x, y):
     return conv
 
 
-def plot_wave_and_spec(wave_data, spec_data):
-    # TODO: やる
-    pass
+def plot_wave_and_spec(wave_data, spec_data, sr, is_show=False, is_save=True, result_path=None):
+    '''
+    plotting wave data and spectrogram
+
+    Parameters
+    ----------
+    wave_data: 1d array
+        wave daata
+    spec_data: 2d array
+        spectrogram data
+    sr: int
+        sampling rate
+    is_show: boolean
+        whether show plot
+    is_save: boolean
+        whether save plot image
+    result_path: pathlib.Path
+        path to save result data
+    '''
+
+    assert is_save and (result_path != None)
+
+    fig, ax = plt.subplots(nrows=2)
+
+    librosa.display.waveplot(wave_data, sr=sr, x_axis='time', ax=ax[0])
+    ax[0].set(title='Original wave', xlabel="Time [s]", ylabel="Magnitude")
+    ax[0].label_outer()
+
+    spec_img_1 = librosa.display.specshow(
+        spec_data, sr=sr, x_axis='time', y_axis='log', ax=ax[1])
+    fig.colorbar(spec_img_1, ax=ax[1])
+    ax[1].set(title='Spectrum', xlabel="Time [s]", ylabel="Frequency [Hz]")
+    ax[1].yaxis.set_ticks([0, 128, 512, 2048, 8192])
+    ax[1].label_outer()
+
+    ax_pos_0 = ax[0].get_position()
+    ax_pos_1 = ax[1].get_position()
+    ax[0].set_position(
+        [ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height])
+
+    # save result
+    if is_save:
+        plt.savefig(result_path)
+
+    # show
+    if is_show:
+        plt.show()
