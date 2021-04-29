@@ -28,35 +28,53 @@ def main(args):
     wave_data_filtered = conv1d(wave_data, bpf)
     spec_filtered = spectrogram(wave_data_filtered)
 
-    fig, ax = plt.subplots(nrows=2, ncols=2)
+    timestamp = datetime.now().strftime(TIME_TEMPLATE)
 
-    librosa.display.waveplot(wave_data, sr=sr, x_axis='time', ax=ax[0][0])
-    ax[0][0].set(title='Original wave', xlabel="Time [s]", ylabel="Magnitude")
-    ax[0][0].label_outer()
+    fig, ax = plt.subplots(nrows=2)
+
+    librosa.display.waveplot(wave_data, sr=sr, x_axis='time', ax=ax[0])
+    ax[0].set(title='Original wave', xlabel="Time [s]", ylabel="Magnitude")
+    ax[0].label_outer()
 
     spec_img_1 = librosa.display.specshow(
-        spec, sr=sr, x_axis='time', y_axis='log', ax=ax[0][1])
-    fig.colorbar(spec_img_1, ax=ax[0][1])
-    ax[0][1].set(title='Spectrum', xlabel="Time [s]", ylabel="Frequency [Hz]")
-    ax[0][1].yaxis.set_ticks([0, 128, 512, 2048, 8192])
-    ax[0][1].label_outer()
+        spec, sr=sr, x_axis='time', y_axis='log', ax=ax[1])
+    fig.colorbar(spec_img_1, ax=ax[1])
+    ax[1].set(title='Spectrum', xlabel="Time [s]", ylabel="Frequency [Hz]")
+    ax[1].yaxis.set_ticks([0, 128, 512, 2048, 8192])
+    ax[1].label_outer()
 
-    librosa.display.waveplot(wave_data_filtered, sr=sr,
-                             x_axis='time', ax=ax[1][0])
-    ax[1][0].set(title='Filterd wave', xlabel="Time [s]", ylabel="Magnitude")
-    ax[1][0].label_outer()
-
-    spec_img_2 = librosa.display.specshow(
-        spec_filtered, sr=sr, x_axis='time', y_axis='log', ax=ax[1][1])
-    fig.colorbar(spec_img_2, ax=ax[1])
-    ax[1][1].set(title='Spectrum', xlabel="Time [s]", ylabel="Frequency [Hz]")
-    ax[1][1].yaxis.set_ticks([0, 128, 512, 2048, 8192])
-    ax[1][1].label_outer()
+    ax_pos_0 = ax[0].get_position()
+    ax_pos_1 = ax[1].get_position()
+    ax[0].set_position(
+        [ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height])
 
     # save result
-    timestamp = datetime.now().strftime(TIME_TEMPLATE)
-    # plt.savefig(result_path.joinpath(timestamp+'-result.pdf'))
-    plt.savefig(result_path.joinpath(timestamp+'-result.png'))
+    plt.savefig(result_path.joinpath(timestamp+'-result-original.png'))
+    soundfile.write(result_path.joinpath(
+        timestamp+'-result.wav'), wave_data_filtered, sr)
+
+    fig, ax = plt.subplots(nrows=2)
+
+    librosa.display.waveplot(wave_data_filtered, sr=sr,
+                             x_axis='time', ax=ax[0])
+    ax[0].set(title='Filterd wave', xlabel="Time [s]", ylabel="Magnitude")
+    ax[0].label_outer()
+
+    spec_img_2 = librosa.display.specshow(
+        spec_filtered, sr=sr, x_axis='time', y_axis='log', ax=ax[1])
+    fig.colorbar(spec_img_2, ax=ax[1])
+    ax[1].set(title='Filtered Spectrum',
+              xlabel="Time [s]", ylabel="Frequency [Hz]")
+    ax[1].yaxis.set_ticks([0, 128, 512, 2048, 8192])
+    ax[1].label_outer()
+
+    ax_pos_0 = ax[0].get_position()
+    ax_pos_1 = ax[1].get_position()
+    ax[0].set_position(
+        [ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height])
+
+    # save result
+    plt.savefig(result_path.joinpath(timestamp+'-result-filtered.png'))
     soundfile.write(result_path.joinpath(
         timestamp+'-result.wav'), wave_data_filtered, sr)
 

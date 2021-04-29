@@ -24,3 +24,8 @@ def conv1d(x, y):
     conv = np.fft.irfft(conv_spec)
 
     return conv
+
+
+def plot_wave_and_spec(wave_data, spec_data):
+    # TODO: やる
+    pass
