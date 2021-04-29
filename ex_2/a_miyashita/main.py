@@ -1,9 +1,12 @@
+import argparse
+
 import numpy as np
 import librosa
 import librosa.display
+import soundfile
 from matplotlib import pyplot as plt
 
-import ex1
+import ex_1.a_miyashita.main as ex1
 
 def convolution(input, filter):
     result = np.zeros(input.size + filter.size)
@@ -15,11 +18,11 @@ class BSF:
     def __init__(self, fmin, fmax, win_size, sr):
         wmin = 2.0 * fmin / sr
         wmax = 2.0 * fmax / sr
-        ite = np.arange(-win_size // 2,(win_size + 1) // 2)
+        ite = np.arange(-(win_size // 2),(win_size + 1) // 2,)
         self.win_size = win_size
         self.filter = wmin * np.sinc(wmin * ite) - wmax * np.sinc(wmax * ite)
-        self.filter[win_size // 2] = self.filter[win_size // 2] + 1.0
-        self.filter = self.filter * np.hamming(win_size)
+        self.filter[win_size // 2] += 1.0
+        self.filter *= np.hamming(win_size)
         self.status = np.zeros(win_size)
 
     def __call__(self, inputs=None):
@@ -30,46 +33,66 @@ class BSF:
         else:
             inputs = np.array(inputs)
             conv = convolution(inputs, self.filter)
-            conv[:self.win_size] = conv[:self.win_size] + self.status
+            conv[:self.win_size] += self.status
             self.status = conv[inputs.size:]
             return conv[:inputs.size]
 
 if __name__ == "__main__":
-    bsf = BSF(2000, 4000, 4000, 16000)
-
+    parser = argparse.ArgumentParser(description="apply band-stop-filter to sound data")
+    parser.add_argument("sc", type=str, help="input filename with extension .wav")
+    parser.add_argument("dst", type=str, help="output filename with extension .wav")
+    parser.add_argument("fmin", type=int, help="the lowest frequency in the band you stop [Hz]")
+    parser.add_argument("fmax", type=int, help="the highest frequency in the band you stop [Hz]")
+    parser.add_argument("n_window", type=int, help="size of window applied to filter")
+    args = parser.parse_args()
+    
     # load
-    origin_signal, rate = librosa.load('sample.wav', sr=16000)
+    original_signal, rate = soundfile.read(args.sc)
 
-    filtered_signal = bsf(origin_signal)
+    bsf = BSF(args.fmin, args.fmax, args.n_window, rate)
+
+    freq = np.fft.rfft(bsf.filter, rate)
+    amp = np.abs(freq)
+    phase = np.unwrap(np.angle(freq))
+
+    
+
+    filtered_signal = bsf(original_signal)
     filtered_signal = np.concatenate([filtered_signal, bsf()])
 
     n_fft = 512
 
     # stft
-    spectrogram = ex1.stft(filtered_signal, n_fft)
+    spectrogram1 = ex1.stft(original_signal, n_fft)
+    spectrogram2 = ex1.stft(filtered_signal, n_fft)
 
-    spectrogram_db = librosa.amplitude_to_db(np.abs(spectrogram))
-
-    # istft
-    resynthesized_signal = ex1.istft(spectrogram)
+    spectrogram_db1 = librosa.amplitude_to_db(np.abs(spectrogram1))
+    spectrogram_db2 = librosa.amplitude_to_db(np.abs(spectrogram2))
 
     # plot
-    fig, ax = plt.subplots(3, 1)
-    fig.subplots_adjust(hspace=1.0)
+    fig, ax = plt.subplots(4, 1)
+    fig.subplots_adjust(hspace=2.0)
     
-    librosa.display.waveplot(filtered_signal, sr=rate, x_axis='time', ax=ax[0])
-    ax[0].set(title='Original signal', xlabel='Time[sec]', ylabel='Magnitude')
-    
-    img = librosa.display.specshow(spectrogram_db, sr=rate, hop_length=n_fft//2, x_axis='time', y_axis='linear', ax=ax[1])
-    ax[1].set(title='Spectrogram', xlabel='Time[sec]', ylabel='Frequency[Hz]')
-    fig.colorbar(img, ax=ax[1])
+    ax[0].plot(amp)
+    ax[0].set(title='Filter amplitude', xlabel='Frequency[Hz]', ylabel='Amplitude')
 
-    librosa.display.waveplot(resynthesized_signal, sr=rate, x_axis='time', ax=ax[2])
-    ax[2].set(title='Re-synthesized signal', xlabel='Time[sec]', ylabel='Magnitude')
+    ax[1].plot(phase)
+    ax[1].set(title='Filter phase', xlabel='Frequency[Hz]', ylabel='Phase[rad]')
+    
+    img = librosa.display.specshow(spectrogram_db1, sr=rate, hop_length=n_fft//2, x_axis='time', y_axis='linear', ax=ax[2], cmap='rainbow')
+    ax[2].set(title='Original', xlabel='Time[sec]', ylabel='Frequency[Hz]')
+    fig.colorbar(img, ax=ax[2])
+
+    img = librosa.display.specshow(spectrogram_db2, sr=rate, hop_length=n_fft//2, x_axis='time', y_axis='linear', ax=ax[3], cmap='rainbow')
+    ax[3].set(title='Filtered', xlabel='Time[sec]', ylabel='Frequency[Hz]')
+    fig.colorbar(img, ax=ax[3])
 
     ax_pos_0 = ax[0].get_position()
     ax_pos_1 = ax[1].get_position()
     ax_pos_2 = ax[2].get_position()
-    ax[0].set_position([ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height])
-    ax[2].set_position([ax_pos_2.x0, ax_pos_2.y0, ax_pos_1.width, ax_pos_1.height])
+    ax_pos_3 = ax[3].get_position()
+    ax[0].set_position([ax_pos_0.x0, ax_pos_0.y0, ax_pos_2.width, ax_pos_2.height])
+    ax[1].set_position([ax_pos_1.x0, ax_pos_1.y0, ax_pos_2.width, ax_pos_2.height])
     
+    plt.savefig('result')
+    soundfile.write(args.dst, filtered_signal, samplerate=rate)
