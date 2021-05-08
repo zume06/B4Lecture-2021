@@ -67,6 +67,7 @@ def spec(data, filtered, sr, F_size, OVERLAP, Ts):
         extent=[0, Ts, 0, sr / 2],
         cmap="rainbow",
         aspect="auto",
+        origin="lower",
     )
     plt.colorbar(im1)
     plt.title("Original Spectrogram")
@@ -79,6 +80,7 @@ def spec(data, filtered, sr, F_size, OVERLAP, Ts):
         extent=[0, Ts, 0, sr / 2],
         cmap="rainbow",
         aspect="auto",
+        origin="lower",
     )
     plt.colorbar(im2)
     plt.title("Filtered Spectrogram")
