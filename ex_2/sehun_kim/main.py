@@ -118,14 +118,14 @@ def conv(x, h):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Filename')
+    parser = argparse.ArgumentParser(description='Program for applying digital filter.\nFile name, filter type, filtering frequency are required.')
     parser.add_argument("-f", dest="filename", help='Filename', required=True)
     parser.add_argument("-t", dest="filter_type", type=int,
                         help='Filter type : 1 for hpf, 2 for lpf, 3 for  bpf, 4 for bsf', required=True)
     parser.add_argument("-f1", type=int, dest="frequency_1",
                         help='Enter frequency #1', required=True)
     parser.add_argument("-f2", type=int, dest="frequency_2",
-                        help='Enter frequency #2', required=False)
+                        help='Enter frequency #2 (Optional)', required=False)
     args = parser.parse_args()
 
     wave_array, sr = librosa.load(args.filename, sr=44100)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     plt.colorbar()
     plt.savefig("spectrogram_original.png")
     plt.figure(figsize=(14, 10))
-    
+
     # Process for High Pass Filter
     if args.filter_type == 1:
         t_hpf = HPF(wave_array, f1, sr)
@@ -154,13 +154,13 @@ if __name__ == "__main__":
         t_hp_filtered = conv(wave_array, t_hpf)
         f_hp_filtered = np.fft.fft(t_hp_filtered)
 
-        # Plot and save frequency response 
-        x = np.arange(0,len(f_hpf)*2,sr/(len(f_hpf)*2))
+        # Plot and save frequency response
+        x = np.arange(0, len(f_hpf)*2, sr/(len(f_hpf)*2))
         plt.subplot(2, 1, 1)
         plt.title("Impulse response of High Pass Filter")
         plt.plot(t_hpf, "b")
         plt.xlabel("Time[samples]")
-        plt.ylabel("Magnitude")        
+        plt.ylabel("Magnitude")
         plt.subplot(2, 1, 2)
         plt.title("Frequency response of High Pass Filter")
         plt.plot(x, f_hpf, "b")
@@ -168,7 +168,7 @@ if __name__ == "__main__":
         plt.ylabel("Magnitude")
         plt.savefig("irfr_hpf.png")
 
-        # Plot and save spectrogram 
+        # Plot and save spectrogram
         X = librosa.stft(t_hp_filtered)
         Xdb = librosa.amplitude_to_db(abs(X))
         plt.figure(figsize=(14, 5))
@@ -188,13 +188,13 @@ if __name__ == "__main__":
         t_lp_filtered = conv(wave_array, t_lpf)
         f_lp_filtered = np.fft.fft(t_lp_filtered)
 
-        # Plot and save frequency response 
-        x = np.arange(0,len(f_lpf)*2,sr/(len(f_lpf)*2))
+        # Plot and save frequency response
+        x = np.arange(0, len(f_lpf)*2, sr/(len(f_lpf)*2))
         plt.subplot(2, 1, 1)
         plt.title("Impulse response of Low Pass Filter")
         plt.plot(t_lpf, "b")
         plt.xlabel("Time[samples]")
-        plt.ylabel("Magnitude")  
+        plt.ylabel("Magnitude")
         plt.subplot(2, 1, 2)
         plt.title("Frequency response of Low Pass Filter")
         plt.plot(x, f_lpf, "b")
@@ -202,7 +202,7 @@ if __name__ == "__main__":
         plt.ylabel("Magnitude")
         plt.savefig("irfr_lpf.png")
 
-        # Plot and save spectrogram 
+        # Plot and save spectrogram
         X = librosa.stft(t_lp_filtered)
         Xdb = librosa.amplitude_to_db(abs(X))
         plt.figure(figsize=(14, 5))
@@ -220,13 +220,13 @@ if __name__ == "__main__":
         t_bp_filtered = conv(wave_array, t_bpf)
         f_bp_filtered = np.fft.fft(t_bp_filtered)
 
-        # Plot and save frequency response 
-        x = np.arange(0,len(f_bpf)*2,sr/(len(f_bpf)*2))
+        # Plot and save frequency response
+        x = np.arange(0, len(f_bpf)*2, sr/(len(f_bpf)*2))
         plt.subplot(2, 1, 1)
         plt.title("Impulse response of Band Pass Filter")
         plt.plot(t_bpf, "b")
         plt.xlabel("Time[samples]")
-        plt.ylabel("Magnitude")  
+        plt.ylabel("Magnitude")
         plt.subplot(2, 1, 2)
         plt.title("Frequency response of Band Pass Filter")
         plt.plot(x, f_bpf, "b")
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         plt.ylabel("Magnitude")
         plt.savefig("irfr_bpf.png")
 
-        # Plot and save spectrogram 
+        # Plot and save spectrogram
         X = librosa.stft(t_bp_filtered)
         Xdb = librosa.amplitude_to_db(abs(X))
         plt.figure(figsize=(14, 5))
@@ -252,13 +252,13 @@ if __name__ == "__main__":
         t_bs_filtered = conv(wave_array, t_bsf)
         f_bs_filtered = np.fft.fft(t_bs_filtered)
 
-        # Plot and save frequency response 
-        x = np.arange(0,len(f_bsf)*2,sr/(len(f_bsf)*2))
+        # Plot and save frequency response
+        x = np.arange(0, len(f_bsf)*2, sr/(len(f_bsf)*2))
         plt.subplot(2, 1, 1)
         plt.title("Impulse response of Band Stop Filter")
         plt.plot(t_bsf, "b")
         plt.xlabel("Time[samples]")
-        plt.ylabel("Magnitude")  
+        plt.ylabel("Magnitude")
         plt.subplot(2, 1, 2)
         plt.title("Frequency response of Band Stop Filter")
         plt.plot(x, f_bsf, "b")
@@ -266,7 +266,7 @@ if __name__ == "__main__":
         plt.ylabel("Magnitude")
         plt.savefig("irfr_bsf.png")
 
-        # Plot and save spectrogram 
+        # Plot and save spectrogram
         X = librosa.stft(t_bs_filtered)
         Xdb = librosa.amplitude_to_db(abs(X))
         plt.figure(figsize=(14, 5))
@@ -278,5 +278,3 @@ if __name__ == "__main__":
     else:
         print("No matching filter type. \nFilter type : 1 for HPF, 2 for LPF, 3 for BPF, 4 for BSF \nExiting...")
         exit()
-
-
