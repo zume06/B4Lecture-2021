@@ -143,7 +143,8 @@ if __name__ == "__main__":
     librosa.display.specshow(Xdb, sr=sr, x_axis="time", y_axis="hz")
     plt.colorbar()
     plt.savefig("spectrogram_original.png")
-
+    plt.figure(figsize=(14, 10))
+    
     # Process for High Pass Filter
     if args.filter_type == 1:
         t_hpf = HPF(wave_array, f1, sr)
@@ -155,12 +156,17 @@ if __name__ == "__main__":
 
         # Plot and save frequency response 
         x = np.arange(0,len(f_hpf)*2,sr/(len(f_hpf)*2))
-        plt.subplot(1, 1, 1)
+        plt.subplot(2, 1, 1)
+        plt.title("Impulse response of High Pass Filter")
+        plt.plot(t_hpf, "b")
+        plt.xlabel("Time[samples]")
+        plt.ylabel("Magnitude")        
+        plt.subplot(2, 1, 2)
         plt.title("Frequency response of High Pass Filter")
         plt.plot(x, f_hpf, "b")
-        plt.xlabel("Frequency")
+        plt.xlabel("Frequency[Hz]")
         plt.ylabel("Magnitude")
-        plt.savefig("frequency response_hpf.png")
+        plt.savefig("irfr_hpf.png")
 
         # Plot and save spectrogram 
         X = librosa.stft(t_hp_filtered)
@@ -184,12 +190,17 @@ if __name__ == "__main__":
 
         # Plot and save frequency response 
         x = np.arange(0,len(f_lpf)*2,sr/(len(f_lpf)*2))
-        plt.subplot(1, 1, 1)
+        plt.subplot(2, 1, 1)
+        plt.title("Impulse response of Low Pass Filter")
+        plt.plot(t_lpf, "b")
+        plt.xlabel("Time[samples]")
+        plt.ylabel("Magnitude")  
+        plt.subplot(2, 1, 2)
         plt.title("Frequency response of Low Pass Filter")
         plt.plot(x, f_lpf, "b")
-        plt.xlabel("Frequency")
+        plt.xlabel("Frequency[Hz]")
         plt.ylabel("Magnitude")
-        plt.savefig("frequency response_lpf.png")
+        plt.savefig("irfr_lpf.png")
 
         # Plot and save spectrogram 
         X = librosa.stft(t_lp_filtered)
@@ -211,12 +222,17 @@ if __name__ == "__main__":
 
         # Plot and save frequency response 
         x = np.arange(0,len(f_bpf)*2,sr/(len(f_bpf)*2))
-        plt.subplot(1, 1, 1)
+        plt.subplot(2, 1, 1)
+        plt.title("Impulse response of Band Pass Filter")
+        plt.plot(t_bpf, "b")
+        plt.xlabel("Time[samples]")
+        plt.ylabel("Magnitude")  
+        plt.subplot(2, 1, 2)
         plt.title("Frequency response of Band Pass Filter")
         plt.plot(x, f_bpf, "b")
-        plt.xlabel("Frequency")
+        plt.xlabel("Frequency[Hz]")
         plt.ylabel("Magnitude")
-        plt.savefig("frequency response_bpf.png")
+        plt.savefig("irfr_bpf.png")
 
         # Plot and save spectrogram 
         X = librosa.stft(t_bp_filtered)
@@ -238,12 +254,17 @@ if __name__ == "__main__":
 
         # Plot and save frequency response 
         x = np.arange(0,len(f_bsf)*2,sr/(len(f_bsf)*2))
-        plt.subplot(1, 1, 1)
+        plt.subplot(2, 1, 1)
+        plt.title("Impulse response of Band Stop Filter")
+        plt.plot(t_bsf, "b")
+        plt.xlabel("Time[samples]")
+        plt.ylabel("Magnitude")  
+        plt.subplot(2, 1, 2)
         plt.title("Frequency response of Band Stop Filter")
         plt.plot(x, f_bsf, "b")
-        plt.xlabel("Frequency")
+        plt.xlabel("Frequency[Hz]")
         plt.ylabel("Magnitude")
-        plt.savefig("frequency response_bsf.png")
+        plt.savefig("irfr_bsf.png")
 
         # Plot and save spectrogram 
         X = librosa.stft(t_bs_filtered)
