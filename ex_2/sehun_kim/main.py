@@ -154,7 +154,7 @@ if __name__ == "__main__":
         f_hp_filtered = np.fft.fft(t_hp_filtered)
 
         # Plot and save frequency response 
-        x = np.arange(0,len(f_lpf)*2,sr/(len(f_lpf)*2))
+        x = np.arange(0,len(f_hpf)*2,sr/(len(f_hpf)*2))
         plt.subplot(1, 1, 1)
         plt.title("Frequency response of High Pass Filter")
         plt.plot(x, f_hpf, "b")
