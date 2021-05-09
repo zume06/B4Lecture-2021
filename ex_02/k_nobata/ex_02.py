@@ -5,6 +5,19 @@ import librosa
 
 # 畳み込み演算
 def convolution(x, h):
+    """
+    paramerters
+    --
+    x:array_like
+      first input
+    h:array_like
+      second input
+
+    returns
+    --
+    out:numply ndarray
+       Discreate, Liner convolution of a and v.
+    """
 
     x_len = len(x)
     h_len = len(h)
@@ -18,6 +31,23 @@ def convolution(x, h):
 
 # バンドパスフィルタ
 def BPF(fl, fh, sr, N):
+    """
+    parameters
+    --
+    fl:int
+       low edge frequency
+    fh:int
+       high edge frequency
+    sr:int
+       sampling rate
+    N:int
+      filter size
+
+    returns
+    --
+    bpf:numpy.ndarray
+        Band Pass Filter
+    """
 
     pi = np.pi
     wl = 2 * pi * fl
@@ -34,6 +64,21 @@ def BPF(fl, fh, sr, N):
 
 # フーリエ変換
 def STFT(data, F_size, OVERLAP):
+    """
+    parameters
+    --
+    data:numpy.ndarray
+         audio time series
+    F_size:int
+           frame size
+    OVERLAP:float
+           overlap size
+
+    returns
+    --
+    spec:numpy.ndarray
+         STFT of data
+    """
     F_num = data.shape[0]
     S_num = int(F_num // (F_size - OVERLAP) - 1)
     window = np.hamming(F_size)
@@ -55,6 +100,22 @@ def STFT(data, F_size, OVERLAP):
 
 # スペクトログラム表示＆保存
 def spec(data, filtered, sr, F_size, OVERLAP, Ts):
+    """
+    parameters
+    --
+    data:numpy.ndarray
+         audio time series
+    filtered:numply.ndarray
+         filtered audio time series
+    sr:int
+       sampling rate
+    F_size:int
+           frame size
+    OVERLAP:float
+            overlap size
+    Ts:float
+    　 wave length
+    """
     spec_ori = STFT(data, F_size, OVERLAP)
     spec_fil = STFT(filtered, F_size, OVERLAP)
 
@@ -95,6 +156,16 @@ def spec(data, filtered, sr, F_size, OVERLAP, Ts):
 
 # 処理後音声保存
 def save(data, sr, name):
+    """
+    parameters
+    --
+    data:numpy.ndarray
+         audio time series
+    sr:int
+       sampling rate
+    name:str
+         file name
+    """
     wf = wave.open(name, "w")
     wf.setnchannels(1)
     wf.setsampwidth(2)
@@ -117,8 +188,8 @@ def main():
     N = 100  # フィルタのサイズ
     F_size = 1024  # フレームのサイズ
     OVERLAP = F_size / 2
-    F_num = data.shape[0]
-    Ts = float(F_num) / samplerate
+    F_num = data.shape[0]  # 音声ファイルのフレーム数
+    Ts = float(F_num) / samplerate  # 波形の長さ
 
     # 音声データをフィルタにかける
     bpf = BPF(fl, fh, samplerate, N)
@@ -147,10 +218,12 @@ def main():
     plt.subplot(2, 1, 2)
     plt.plot(frequency_label, phase[0 : N // 2 + 1])
     plt.title("BPF Phase Characteristic")
-    plt.ylabel("Phase[rad]")
+    plt.ylabel("Phase[deg]")
+    plt.xlabel("Frequency[Hz]")
     plt.grid()
-    # plt.savefig("BPFFrequencyCharacteristic.png")
+    plt.savefig("BPFFrequencyCharacteristic2.png")
 
 
 # 実行
-main()
+if __name__ == "__main__":
+    main()
