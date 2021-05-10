@@ -17,7 +17,7 @@ def convolution(x, h):
 
     x_len = len(x)
     h_len = len(h)
-    y = np.zeros(x_len + h_len + 1)
+    y = np.zeros(x_len + h_len)
 
     for i in range(x_len):
         y[i:i+h_len] += x[i] * h
