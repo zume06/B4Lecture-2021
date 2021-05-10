@@ -35,6 +35,8 @@ def main(args):
     res_path = result_path.joinpath(timestamp+'-filtered-result.png')
     plot_wave_and_spec(wave_data_filtered, spec_filtered, sr,
                        result_path=res_path)
+    res_path = result_path.joinpath(timestamp+'-result.png')
+    plot_phase_and_frequency_characteristic(bpf, sr, result_path=res_path)
 
     # save wav
     soundfile.write(result_path.joinpath(
