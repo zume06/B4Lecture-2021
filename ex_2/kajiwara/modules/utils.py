@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import librosa.display
 import matplotlib.pyplot as plt
@@ -28,6 +30,41 @@ def conv1d(x, y):
     return conv
 
 
+def plot_phase_and_frequency_characteristic(data, sr, is_show=False, is_save=True, result_path=None):
+    '''
+    plotting phase characteristic and frequency characteristic
+
+    Parameters
+    ----------
+    data: array
+    '''
+
+    assert is_save and (result_path != None)
+
+    fig, ax = plt.subplots(nrows=2)
+    plt.subplots_adjust(wspace=0.4, hspace=0.6)
+
+    freq = np.fft.rfft(data, sr)
+    amp = np.abs(freq)
+    phase = np.unwrap(np.angle(freq))
+
+    ax[0].plot(amp)
+    ax[0].set(title="amplitude characteristic",
+              xlabel="Frequency[Hz]", ylabel="Amplitude")
+
+    ax[1].plot(phase)
+    ax[1].set(title="phase characteristic",
+              xlabel="Frequency[Hz]", ylabel="Phase[rad]")
+
+    # save result
+    if is_save:
+        plt.savefig(result_path)
+
+    # show
+    if is_show:
+        plt.show()
+
+
 def plot_wave_and_spec(wave_data, spec_data, sr, is_show=False, is_save=True, result_path=None):
     '''
     plotting wave data and spectrogram
@@ -35,7 +72,7 @@ def plot_wave_and_spec(wave_data, spec_data, sr, is_show=False, is_save=True, re
     Parameters
     ----------
     wave_data: 1d array
-        wave daata
+        wave data
     spec_data: 2d array
         spectrogram data
     sr: int
