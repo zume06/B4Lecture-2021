@@ -78,25 +78,27 @@ def main(args):
     hop = 0.5
     win_length = 1024
     hop_length = int(win_length * hop)
+    fir_size = 200
 
     # create filter
     if args.hpf:
-        fir = filters.HPF(sr, args.hpf[0], 255)
+        fir = filters.HPF(sr, args.hpf[0], fir_size)
     elif args.lpf:
-        fir = filters.LPF(sr, args.lpf[0], 255)
+        fir = filters.LPF(sr, args.lpf[0], fir_size)
     elif args.bpf:
-        fir = filters.BPF(sr, args.bpf[0], args.bpf[1], 255)
+        fir = filters.BPF(sr, args.bpf[0], args.bpf[1], fir_size)
     elif args.bef:
-        fir = filters.BEF(sr, args.bef[0], args.bef[1], 255)
+        fir = filters.BEF(sr, args.bef[0], args.bef[1], fir_size)
 
     # analize filter
-    freq = np.fft.fft(fir, sr)
-    amp = np.abs(freq)
+    fir_fft = np.fft.fft(fir)
+    amp = np.abs(fir_fft)
     amp_db = librosa.amplitude_to_db(np.abs(amp))
-    phase = np.unwrap(np.angle(freq))
+    phase = np.unwrap(np.angle(fir_fft))
+    freq = np.arange(0, sr / 2, (sr // 2) / (fir_size // 2 + 1))
 
     # show and save a figure of filter characteristic (amplitude and phase)
-    fig = mkfig.filterchar_show(amp_db, phase)
+    fig = mkfig.filterchar_show(freq, amp_db, phase, fir_size)
     fig.savefig(path + "result/filterchar.png")
 
     # spectrogram of original wav data
