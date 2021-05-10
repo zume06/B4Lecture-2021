@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import librosa.display
 
 
-def filterchar_show(amp, phase):
+def filterchar_show(x, amp, phase, N):
     """
     Show figure of filter characteristic (amplitude and phase).
 
@@ -22,7 +22,7 @@ def filterchar_show(amp, phase):
     fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
     fig.subplots_adjust(hspace=0.6)
 
-    ax[0].plot(amp)
+    ax[0].plot(x, amp[0 : N // 2 + 1])
     ax[0].set(
         title="Filter amplitude",
         xlabel="Frequency [Hz]",
@@ -31,13 +31,12 @@ def filterchar_show(amp, phase):
     )
     ax[0].grid(ls="--")
 
-    ax[1].plot(phase)
+    ax[1].plot(x, phase[0 : N // 2 + 1])
     ax[1].set(
         title="Filter phase",
         xlabel="Frequency [Hz]",
         ylabel="Phase [rad]",
         xlim=(0, 8000),
-        ylim=(-250, 50),
     )
     ax[1].grid(ls="--")
 
