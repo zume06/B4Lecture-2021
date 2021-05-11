@@ -17,7 +17,7 @@
 
     ```bash
     $ cd B4Lecture-2021
-    $ git remote add upstream https://github.com/TakedaLab/B4Lecture-2021.git
+    $ git remote add upstream https://github.com/<自分の名前>/B4Lecture-2021.git
     ```
 
 
