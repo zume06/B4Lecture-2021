@@ -13,13 +13,14 @@ def csv_open(fname):
     return file
 
 
-def reg_2d(data, order):
+def reg_2d(data, order, nc):
     x, y = data.T
     phi = np.zeros([len(x), order+1])
     for i in range(order+1):
         phi[:, i] += x ** i
 
-    w = np.dot(np.dot(np.linalg.inv(np.dot(phi.T, phi)), phi.T), y)
+    I = np.eye(order + 1)
+    w = np.dot(np.dot(np.linalg.inv(I * nc + np.dot(phi.T, phi)), phi.T), y)
 
     reg_x = np.arange(min(x), max(x), 0.01)
     reg_y = np.zeros(len(reg_x))
@@ -37,7 +38,7 @@ def reg_2d(data, order):
     plt.savefig("result_2d.png")
 
 
-def reg_3d(data, order_x, order_y):
+def reg_3d(data, order_x, order_y, nc):
     x, y, z = data.T
     phi = np.zeros([len(x), order_x + order_y + 1])
     for i in range(order_x+1):
@@ -45,7 +46,8 @@ def reg_3d(data, order_x, order_y):
     for j in range(order_y):
         phi[:, j + order_x + 1] += y ** (j + 1)
 
-    w = np.dot(np.dot(np.linalg.inv(np.dot(phi.T, phi)), phi.T), z)
+    I = np.eye(order_x + order_y + 1)
+    w = np.dot(np.dot(np.linalg.inv(I * nc + np.dot(phi.T, phi)), phi.T), z)
 
     reg_x = np.arange(min(x), max(x), 0.01)
     reg_y = np.arange(min(y), max(y), (max(y)-min(y)) /
@@ -80,10 +82,12 @@ if __name__ == "__main__":
                         help='Regression order for x', required=True)
     parser.add_argument("-oy", dest="order_y", type=int,
                         help='Regression order for y (optional). Default = 3', required=False, default = 3)
+    parser.add_argument("-nc", dest="nc", type=int,
+                        help='Normalization coefficient (optional). Default = 0', required=False, default = 0)
     args = parser.parse_args()
     data = csv_open(args.filename)
     dimension = np.shape(data)[1]
     if dimension == 3:
-            reg_3d(data, args.order_x, args.order_y)
+            reg_3d(data, args.order_x, args.order_y, args.nc)
     else:
-        reg_2d(data, args.order_x)
+        reg_2d(data, args.order_x, args.nc)
