@@ -8,71 +8,84 @@ OVERLAP = int(NFFT / 2) # half shift を採用
 window = np.hamming(NFFT) # 窓関数はハミング窓を使用
 
 # 音声データのロード
+#   fname: ファイル名
 def wav_load(fname):
     wave, samplerate = sf.read(fname)
     return wave, samplerate
 
 # 時間信号グラフの描画
+#   ax: グラフ領域
+#   title: グラフのタイトル
+#   time:   x座標のデータ
+#   wave:   y座標のデータ
 def draw_signal(ax, title, time, wave):
-    ax.plot(time, wave)
-    plt.title(title) # タイトルの追加
-    plt.ylabel("Magnitude") # y軸ラベルの追加
+    ax.plot(time, wave) # 時間信号の描画
+    ax.set_title(title) # タイトルの追加
+    ax.set_xlabel("time[s]")   # x軸ラベルの追加
+    ax.set_ylabel("Magnitude") # y軸ラベルの追加
 
 # スペクトログラムグラフの描画
+#   ax:グラフ領域
+#   title: グラフのタイトル
+#   spec: スペクトログラムのデータ
+#   wave_length: 音源の長さ
+#   samplerate: サンプルレート
 def draw_spectrogram(ax, title, spec, wave_length, samplerate):
-    spec = np.log(np.square(np.abs(spec))) # 
+    spec = np.log(np.square(np.abs(spec))) 
     ax.imshow(spec.T, extent = [0, wave_length, 0, samplerate / 2],
-    aspect = "auto")
-    plt.title(title) # タイトルの追加
-    plt.ylabel("Frequency[kHz]") # y軸ラベルの追加
+    cmap = "rainbow", aspect = "auto") # スペクトログラムの描画
+    ax.set_title(title)             # タイトルの追加
+    ax.set_xlabel("time[s]")        # x軸ラベルの追加
+    ax.set_ylabel("Frequency[kHz]") # y軸ラベルの追加
     
 
 # 短時間フーリエ変換(STFT)
+#   wave: 入力波形
 def stft(wave):
-    spec = np.zeros([len(wave) // OVERLAP - 1, NFFT],
+    spec = np.zeros([len(wave) // OVERLAP - 1, int(NFFT / 2) + 1],
     dtype = np.complex) # spec:出力データ
     for idx in range(0, len(wave), OVERLAP):
         frame = wave[idx : idx + NFFT] # frame の切り出し
         if len(frame) == NFFT: # frame が全部切り出せるときのみ変換
             windowed = window * frame # 窓関数をかける
-            windowed = np.fft.fft(windowed) #フーリエ変換
-            for i in range(len(spec[len(wave) // OVERLAP - 2])):
-                spec[int(idx / OVERLAP)][i] = windowed[i] # 計算結果を出力データに追加
+            result = np.fft.rfft(windowed) #フーリエ変換
+            for i in range(spec.shape[1]):
+                spec[int(idx / OVERLAP)][i] = result[i] # 計算結果を出力データに追加
     return spec
 
 # 短時間フーリエ逆変換(ISTFT)
+#   spec: スペクトログラム
+#   wave_size: wave の要素数
 def i_stft(spec, wave_size):
     wave = np.zeros(wave_size) # wave:出力データ
     for idx in range(wave_size // OVERLAP - 2):
-        frame = np.fft.ifft(spec[idx]) # frame の切り出し
+        frame = np.fft.irfft(spec[idx]) # frame の切り出し
         wave[idx * OVERLAP : idx * OVERLAP + NFFT] += np.real(frame) #フーリエ逆変換
     return wave
 
 
 # main
 def main():
-    fig, axes = plt.subplots(3, 1, sharex = True) # グラフ領域の確保
+    fig = plt.figure() # 以下，グラフ領域の確保
+    ax1 = fig.add_subplot(3, 1, 1)
+    ax2 = fig.add_subplot(3, 1, 2)
+    ax3 = fig.add_subplot(3, 1, 3)
     wave, samplerate = wav_load("sound.wav") # 音声データのロード
     wave_size = len(wave) # wave の要素数
     wave_length = wave_size / samplerate # wave の長さ
     time = np.arange(0, wave_size) / samplerate # 横軸を time に設定
-    draw_signal(axes[0], "Original signal", time, wave) # 元データの描画
+    draw_signal(ax1, "Original signal", time, wave) # 元データの描画
     spec = stft(wave) # 短時間フーリエ変換
-    draw_spectrogram(axes[1], "Spectrogram", spec,
+    draw_spectrogram(ax2, "Spectrogram", spec,
     wave_length, samplerate) # スペクトログラムデータの描画
     wave = i_stft(spec, wave_size) # 短時間フーリエ逆変換
-    draw_signal(axes[2], "Re-synthesized signal", time, wave) # 復元データの描画
-    # グラフの調整
-    
-    ax_0_pos = axes[0].get_position()
-    ax_1_pos = axes[1].get_position()
-    ax_2_pos = axes[2].get_position()
-    axes[0].set_position([ax_0_pos.x0, ax_0_pos.y0, ax_1_pos.width, ax_1_pos.height])
-    axes[1].set_position([ax_1_pos.x0, ax_1_pos.y0, ax_1_pos.width, ax_1_pos.height])
-    axes[2].set_position([ax_2_pos.x0, ax_2_pos.y0, ax_1_pos.width, ax_1_pos.height])
-    plt.show()
-    plt.savefig('ex01_okamori1.png')
-    print("ok")
+    draw_signal(ax3, "Re-synthesized signal", time, wave) # 復元データの描画
+    fig.tight_layout() # レイアウト調整
+    plt.savefig('ex01.png') # 保存
+
+    sf.write("out.wav", wave, samplerate,
+    format = "WAV", subtype = 'PCM_16') # 変換後音声データの書き出し
+
     return
 
 main()
