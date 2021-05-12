@@ -8,12 +8,30 @@ import csv
 
 
 def csv_open(fname):
+    """
+    Function for opening csv file
+
+    Parameters :
+    fname   : Name of the file
+
+    Return :
+    file    : Data array in csv file
+    """
     file = pd.read_csv(fname)
     file = np.array(file)
     return file
 
 
 def reg_2d(data, order, nc):
+    """
+    Finding regression assumption for 2D data and plot.
+
+    Parameters :
+    data    : Original data(2D array)
+    order   : Order for regression function
+    nc      : Normalization coefficient 
+    """
+
     x, y = data.T
     phi = np.zeros([len(x), order+1])
     for i in range(order+1):
@@ -29,16 +47,26 @@ def reg_2d(data, order, nc):
         for j in range(len(w)):
             reg_y[i] += (reg_x[i] ** j) * w[j]
 
+    # Plot original data and regression assumption
     plt.scatter(x, y, label='Original data')
     plt.plot(reg_x, reg_y, label='Regression assumption', color='red')
     plt.xlabel("x")
     plt.ylabel("y")
     plt.legend()
-
     plt.savefig("result_2d.png")
 
 
 def reg_3d(data, order_x, order_y, nc):
+    """
+    Finding regression assumption for 3D data and plot.
+
+    Parameters :
+    data    : Original data(2D array)
+    order_x : Order for x in regression function
+    order_y : Order for y in regression function
+    nc      : Normalization coefficient 
+    """
+
     x, y, z = data.T
     phi = np.zeros([len(x), order_x + order_y + 1])
     for i in range(order_x+1):
@@ -59,12 +87,12 @@ def reg_3d(data, order_x, order_y, nc):
     for j in range(1, order_y + 1):
         reg_z += (reg_y ** j) * w[j + order_x]
 
+    # Plot original data and regression assumption
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.set_xlabel('x')
     ax.set_xlabel('y')
     ax.set_xlabel('z')
-
     ax.view_init(20, 210)
     ax.scatter(x, y, z, label='Original data', color = 'r')
     plt.legend()
