@@ -7,17 +7,16 @@ import argparse
 import csv
 
 
-
 def csv_open(fname):
     file = pd.read_csv(fname)
     file = np.array(file)
     return file
 
 
-def reg_2d(data, degree):
+def reg_2d(data, order):
     x, y = data.T
-    phi = np.zeros([len(x), degree+1])
-    for i in range(degree+1):
+    phi = np.zeros([len(x), order+1])
+    for i in range(order+1):
         phi[:, i] += x ** i
 
     w = np.dot(np.dot(np.linalg.inv(np.dot(phi.T, phi)), phi.T), y)
@@ -29,57 +28,62 @@ def reg_2d(data, degree):
         for j in range(len(w)):
             reg_y[i] += (reg_x[i] ** j) * w[j]
 
-    plt.scatter(x, y)
-    plt.plot(reg_x, reg_y, label='Regression', color='red')
+    plt.scatter(x, y, label='Original data')
+    plt.plot(reg_x, reg_y, label='Regression assumption', color='red')
     plt.xlabel("x")
     plt.ylabel("y")
+    plt.legend()
 
     plt.savefig("result_2d.png")
 
 
-def reg_3d(data, degree):
+def reg_3d(data, order_x, order_y):
     x, y, z = data.T
-    phi = np.zeros([len(x), degree * 2 + 1])
-    for i in range(degree+1):
+    phi = np.zeros([len(x), order_x + order_y + 1])
+    for i in range(order_x+1):
         phi[:, i] += x ** i
-    for j in range(degree):
-        phi[:, j + degree + 1] += y ** (j +1)
+    for j in range(order_y):
+        phi[:, j + order_x + 1] += y ** (j + 1)
 
     w = np.dot(np.dot(np.linalg.inv(np.dot(phi.T, phi)), phi.T), z)
 
     reg_x = np.arange(min(x), max(x), 0.01)
-    reg_y = np.arange(min(y), max(y), (max(y)-min(y)) / ((max(x)-min(x)) /0.01))
+    reg_y = np.arange(min(y), max(y), (max(y)-min(y)) /
+                      ((max(x)-min(x)) / 0.01))
     reg_x, reg_y = np.meshgrid(reg_x, reg_y)
     reg_z = np.zeros([len(reg_y), len(reg_x)])
-    for i in range(0, degree + 1):
+    for i in range(0, order_x + 1):
         reg_z += (reg_x ** i) * w[i]
-    for j in range(1, degree + 1):
-        reg_z += (reg_y ** j) * w[j + degree]
+    for j in range(1, order_y + 1):
+        reg_z += (reg_y ** j) * w[j + order_x]
 
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.set_xlabel('x')
     ax.set_xlabel('y')
     ax.set_xlabel('z')
-    ax.scatter(x, y, z, label = 'Original data')
-    ax.plot_wireframe(reg_x, reg_y, reg_z , color = 'g')
 
+    ax.view_init(20, 210)
+    ax.scatter(x, y, z, label='Original data', color = 'r')
+    plt.legend()
+    ax.plot_wireframe(reg_x, reg_y, reg_z, color='g', label='Regression assumption', linewidth = 0.2)
+    ax.legend()
     plt.savefig("result_3d.png")
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description='Program for plotting regression equation.\nFile name, degree for regression equation are required.')
+        description='Program for plotting regression equation.\nFile name, order for regression equation are required.')
     parser.add_argument("-f", dest="filename", help='Filename', required=True)
-    parser.add_argument("-d", dest="degree", type=int,
-                        help='Degree for regression equation', required=True)
+    parser.add_argument("-ox", dest="order_x", type=int,
+                        help='Regression order for x', required=True)
+    parser.add_argument("-oy", dest="order_y", type=int,
+                        help='Regression order for y (optional). Default = 3', required=False, default = 3)
     args = parser.parse_args()
     data = csv_open(args.filename)
     dimension = np.shape(data)[1]
     if dimension == 3:
-        reg_3d(data, args.degree)
+            reg_3d(data, args.order_x, args.order_y)
     else:
-        reg_2d(data, args.degree)
-
-    print("Program terminated")
+        reg_2d(data, args.order_x)
