@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import argparse
 import csv
+
 
 
 def csv_open(fname):
@@ -14,11 +16,11 @@ def csv_open(fname):
 
 def reg_2d(data, degree):
     x, y = data.T
-    X = np.zeros([len(x), degree+1])
+    phi = np.zeros([len(x), degree+1])
     for i in range(degree+1):
-        X[:, i] += x ** i
+        phi[:, i] += x ** i
 
-    w = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)), X.T), y)
+    w = np.dot(np.dot(np.linalg.inv(np.dot(phi.T, phi)), phi.T), y)
 
     reg_x = np.arange(min(x), max(x), 0.01)
     reg_y = np.zeros(len(reg_x))
@@ -32,7 +34,37 @@ def reg_2d(data, degree):
     plt.xlabel("x")
     plt.ylabel("y")
 
-    plt.savefig("result.png")
+    plt.savefig("result_2d.png")
+
+
+def reg_3d(data, degree):
+    x, y, z = data.T
+    phi = np.zeros([len(x), degree * 2 + 1])
+    for i in range(degree+1):
+        phi[:, i] += x ** i
+    for j in range(degree):
+        phi[:, j + degree + 1] += y ** (j +1)
+
+    w = np.dot(np.dot(np.linalg.inv(np.dot(phi.T, phi)), phi.T), z)
+
+    reg_x = np.arange(min(x), max(x), 0.01)
+    reg_y = np.arange(min(y), max(y), (max(y)-min(y)) / ((max(x)-min(x)) /0.01))
+    reg_x, reg_y = np.meshgrid(reg_x, reg_y)
+    reg_z = np.zeros([len(reg_y), len(reg_x)])
+    for i in range(0, degree + 1):
+        reg_z += (reg_x ** i) * w[i]
+    for j in range(1, degree + 1):
+        reg_z += (reg_y ** j) * w[j + degree]
+
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    ax.set_xlabel('x')
+    ax.set_xlabel('y')
+    ax.set_xlabel('z')
+    ax.scatter(x, y, z, label = 'Original data')
+    ax.plot_wireframe(reg_x, reg_y, reg_z , color = 'g')
+
+    plt.savefig("result_3d.png")
 
 
 if __name__ == "__main__":
@@ -46,11 +78,8 @@ if __name__ == "__main__":
     data = csv_open(args.filename)
     dimension = np.shape(data)[1]
     if dimension == 3:
-        x, y, z = data.T
         reg_3d(data, args.degree)
     else:
-        
         reg_2d(data, args.degree)
-    
 
     print("Program terminated")
