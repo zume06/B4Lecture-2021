@@ -6,24 +6,48 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
+from sympy import Symbol, latex
 import os
 
 
-def polyfit():
-    pass
+def linear_regression(x, y, deg, lam):
+    phi = np.array([[p ** i for i in range(deg + 1)] for p in x])
+    w = np.linalg.inv(phi.T @ phi + lam * np.eye(deg + 1)) @ phi.T @ y
+    return w
 
 
-def poly1d():
-    pass
+def latexfunc(w):
+    x = Symbol("x")
+    f = 0
+    for i in range(len(w)):
+        f += round(w[i], 2) * x ** i
+    return latex(f)
+
+
+class poly1d:
+    def substitute(self, coef, x):
+        f = np.zeros(x.shape)
+        for i in range(len(coef)):
+            f += coef[i] * (x ** (len(coef) - i - 1))
+        return f
+
+
+def my_removesuffix(str, suffix):
+    return str[: -len(suffix)] if str.endswith(suffix) else str
 
 
 def main():
+    fname = "data2.csv"
+    save_fname = "data2_3.png"
+    deg = 15
+    lam = 10
+
     # get current working directory
     path = os.path.dirname(__file__)
-    fname = "/data/data3.csv"
-    save_fname = fname.replace("data", "result", 1).replace(".csv", "_result.png")
-    fname = path + fname
-    save_fname = path + save_fname
+    graphtitle = my_removesuffix(fname, ".csv")
+
+    fname = path + "/data/" + fname
+    save_fname = path + "/result/" + save_fname
 
     # load data file and convert to ndarray
     data = pd.read_csv(fname).values
@@ -34,9 +58,27 @@ def main():
         y = data[:, 1]  # load x2
         # plot_2d(x1, x2, deg1, regular)
         fig = plt.figure()
-        ax = fig.add_subplot(111, title="Observed data", xlabel="X", ylabel="Y")
+        ax = fig.add_subplot(111, xlabel="X", ylabel="Y")
         ax.scatter(x, y, s=12, c="darkblue", label="observed")
         ax.grid(ls="--")
+
+        w = linear_regression(x, y, deg, lam)
+        # print(w)
+
+        X = np.linspace(x.min(), x.max(), 500)
+        Y_hat = np.zeros_like(X)
+        for i in range(len(w)):
+            Y_hat += w[i] * X ** i
+
+        plt.plot(X, Y_hat, c="r", label="predicted")
+        ax.set_title(
+            graphtitle
+            + "  (deg = {0}, lam = {1})\n".format(deg, lam)
+            + "$f(x) = "
+            + latexfunc(w)
+            + "$"
+        )
+
         ax.legend(loc="best", fontsize=10)
         # plt.legend(bbox_to_anchor=(1, 1), loc="upper right", borderaxespad=1, fontsize=12)
         plt.savefig(save_fname)
@@ -55,7 +97,7 @@ def main():
             gridspec_kw={"width_ratios": [8, 7]},
         )
         fig.subplots_adjust(hspace=0.4, wspace=0.2)
-        fig.suptitle("Observed data", fontsize=16)
+        fig.suptitle(graphtitle, fontsize=16)
         plt.rcParams["font.size"] = 12
         ax[0, 0].set(title="X - Y", xlabel="X", ylabel="Y")
         ax[0, 0].scatter(x, y, s=20, c="darkblue", label="observed")
@@ -85,14 +127,25 @@ def main():
             [ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height]
         )
         # fig.tight_layout()
-        plt.savefig(save_fname)
+        plt.savefig(path + "/result/data3_1.png")
         plt.show()
 
         # X, Y = np.meshgrid(x, y)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
         ax.scatter3D(x, y, z, s=20, c="darkblue")
-        ax.set(title="data3_3D", xlabel="X", ylabel="Y", zlabel="Z")
+        ax.set(
+            title=graphtitle + "_3D",
+            xlabel="X",
+            ylabel="Y",
+            zlabel="Z",
+        )
+
+        X = np.linspace(x.min(), x.max(), 30)
+        Y = np.linspace(y.min(), y.max(), 30)
+        X, Y = np.meshgrid(X, Y)
+        Z_hat = 5 * X * Y
+        ax.plot_wireframe(X, Y, Z_hat, color="red", label="predictied")
 
         """
         def init():
@@ -107,7 +160,7 @@ def main():
 
         # Animate
         ani = animation.FuncAnimation(fig, update, frames=100, interval=100)
-        ani.save(path + "/result/data3_result3D.gif", writer="pillow")
+        ani.save(save_fname, writer="pillow")
         # ani.save(path + "/result/data3_result3D.mp4", writer="ffmpeg", dpi=100)
         plt.show()
 
