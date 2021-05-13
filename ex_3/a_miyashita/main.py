@@ -12,9 +12,9 @@ class LinearModel:
         Class for linear regression.
 
         # Parameters
-            base_function (list):
+            base_functions (list):
                 List of base function. Each of functions must take ndarray as an argument,
-                culculate results elementwise along its 1st dimension, and return 1d-ndarray.
+                calculate results elementwise along its 1st dimension, and return 1d-ndarray.
         """
         self.base_functions = base_functions
         self.w = np.zeros(len(base_functions))
@@ -74,7 +74,7 @@ class polynomial:
         self.degs = degs
 
     def __call__(self, x):
-        # culculate power variable by variable
+        # calculate power variable by variable
         pow = x ** self.degs
 
         if x.ndim == 1:
@@ -132,7 +132,7 @@ def generate_degs(deg_sum, variable_size):
 
         return result
     else:
-        # culculate on 1 less variables
+        # calculate on 1 less variables
         degs = generate_degs(deg_sum, variable_size - 1)
 
         result = []
