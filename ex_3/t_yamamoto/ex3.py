@@ -201,12 +201,12 @@ def main(args):
         ax = fig.add_subplot(111, projection="3d")
         ax.scatter3D(x, y, z, s=20, c="darkblue", label="observed")
         ax.plot_wireframe(
-            reg_x, reg_y, reg_z, color="red", linewidth=0.5, label="predictied"
+            reg_x, reg_y, reg_z, color="red", linewidth=0.5, label="predicted"
         )
         ax.set(
             title=graphtitle
             + "_3D  (deg_x = {0}, deg_y = {1}, lam = {2})\n".format(deg_x, deg_y, lam)
-            + "$f(x) = "
+            + "$f(x, y) = "
             + latexfunc(w, deg_x, deg_y)
             + "$",
             xlabel="X",
