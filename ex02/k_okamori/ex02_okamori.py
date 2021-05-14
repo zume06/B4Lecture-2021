@@ -142,4 +142,5 @@ def main():
              format="WAV", subtype='PCM_16')  # 変換後音声データの書き出し
 
 
-main()
+if __name__ == "__main__":
+    main()
