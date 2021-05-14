@@ -10,143 +10,213 @@ from sympy import Symbol, latex
 import os
 
 
-def linear_regression(x, y, deg, lam):
+def regression_2d(x, y, deg, lam):
+    """
+    Find regression assumption for 2D data.
+
+    Parameters:
+        x : ndarray
+            First input.
+        y : ndarray
+            Second input. Should have the same number of dimensions as x.
+        deg : int
+            Degree for x in regression function.
+        lam : float
+            Normalization coefficient.
+
+    Returns:
+        w : ndarray
+            Regression function coefficient.
+            # For example
+                deg = 3, w = [1,2,3,4]
+                -> it means "f = 1 + 2x + 3x^2 + 4x^3".
+    """
+
     phi = np.array([[p ** i for i in range(deg + 1)] for p in x])
     w = np.linalg.inv(phi.T @ phi + lam * np.eye(deg + 1)) @ phi.T @ y
     return w
 
 
-def latexfunc(w):
+def regression_3d(x, y, z, deg_x, deg_y, lam):
+    """
+    Find regression assumption for 3D data.
+
+    Parameters:
+        x : ndarray
+            First input.
+        y : ndarray
+            Second input. Should have the same number of dimensions as x.
+        z : ndarray
+            Third input. Should have the same number of dimensions as x and y.
+        deg_x : int
+            Degree for x in regression function.
+        deg_y : int
+            Degree for y in regression function.
+        lam : float
+            Normalization coefficient.
+
+    Returns:
+        w : ndarray
+            Regression function coefficient.
+            # For example
+                deg_x = 3, deg_y = 2, w = [1,2,3,4,5,6]
+                -> it means "f = 1 + 2x + 3x^2 + 4x^3 + 5y + 6y^2".
+    """
+
+    phi_x = np.array([[p ** i for i in range(deg_x + 1)] for p in x])
+    phi_y = np.array([[p ** (i + 1) for i in range(deg_y)] for p in y])
+    phi = np.hstack([phi_x, phi_y])
+    w = np.linalg.inv(phi.T @ phi + lam * np.eye(deg_x + deg_y + 1)) @ phi.T @ z
+    return w
+
+
+def latexfunc(w, deg_x, deg_y=None):
+    """
+    Convert w (regression function coefficient) into function as LaTeX style.
+
+    Parameters:
+        w : ndarray
+            Regression function coefficient.
+            # For example
+                deg_x = 3, deg_y = 2, w = [1,2,3,4,5,6]
+                -> it means "f = 1 + 2x + 3x^2 + 4x^3 + 5y + 6y^2".
+        deg_x : int
+            Degree for x in regression function.
+        deg_y : int
+            Degree for y in regression function.
+
+    Returns:
+        f : str
+            Function  as LaTeX.
+    """
+
     x = Symbol("x")
     f = 0
-    for i in range(len(w)):
+    for i in range(deg_x + 1):
         f += round(w[i], 2) * x ** i
-    return latex(f)
-
-
-class poly1d:
-    def substitute(self, coef, x):
-        f = np.zeros(x.shape)
-        for i in range(len(coef)):
-            f += coef[i] * (x ** (len(coef) - i - 1))
-        return f
+    if deg_y is not None:
+        y = Symbol("y")
+        for i in range(deg_y):
+            f += round(w[deg_x + i + 1], 2) * y ** (i + 1)
+    f = latex(f)
+    return f
 
 
 def my_removesuffix(str, suffix):
+    """
+    A method which returns a new string with the trimmed suffix
+    if the str ends with it else it will return the original string.
+
+    Parameters:
+        str : str
+            Original string.
+        suffix : str
+            Trimmed suffix.
+
+    Returns:
+        str
+            New string with the trimmed suffix.
+    """
+
     return str[: -len(suffix)] if str.endswith(suffix) else str
 
 
-def main():
-    fname = "data2.csv"
-    save_fname = "data2_3.png"
-    deg = 15
-    lam = 10
+def main(args):
+    """
+    fname = "data3.csv"
+    save_fname = "data3_2.gif"
+    deg_x = 1
+    deg_y = 4
+    lam = 0.00001
+    """
+
+    fname = args.fname
+    save_fname = args.save_fname
+    deg_x = args.deg_x
+    deg_y = args.deg_y
+    lam = args.lam
 
     # get current working directory
-    path = os.path.dirname(__file__)
+    path = os.path.dirname(os.path.abspath(__file__))
+
+    # For example, if fname = data1.csv, graphtitle = data1
     graphtitle = my_removesuffix(fname, ".csv")
 
     fname = path + "/data/" + fname
     save_fname = path + "/result/" + save_fname
 
-    # load data file and convert to ndarray
+    # load csv file and convert to ndarray
     data = pd.read_csv(fname).values
 
     # if data is 2 dimensional
     if data.shape[1] == 2:
         x = data[:, 0]  # load x1
         y = data[:, 1]  # load x2
-        # plot_2d(x1, x2, deg1, regular)
+
+        # define coordinates for regression assumption
+        reg_x = np.linspace(x.min(), x.max(), 500)
+        reg_y = np.zeros_like(reg_x)
+        w = regression_2d(x, y, deg_x, lam)
+        # print(w)
+        for i in range(len(w)):
+            reg_y += w[i] * reg_x ** i
+
+        # plot original data and regression assumption
         fig = plt.figure()
         ax = fig.add_subplot(111, xlabel="X", ylabel="Y")
         ax.scatter(x, y, s=12, c="darkblue", label="observed")
+        plt.plot(reg_x, reg_y, c="r", label="predicted")
         ax.grid(ls="--")
-
-        w = linear_regression(x, y, deg, lam)
-        # print(w)
-
-        X = np.linspace(x.min(), x.max(), 500)
-        Y_hat = np.zeros_like(X)
-        for i in range(len(w)):
-            Y_hat += w[i] * X ** i
-
-        plt.plot(X, Y_hat, c="r", label="predicted")
         ax.set_title(
             graphtitle
-            + "  (deg = {0}, lam = {1})\n".format(deg, lam)
+            + "  (deg = {0}, lam = {1})\n".format(deg_x, lam)
             + "$f(x) = "
-            + latexfunc(w)
+            + latexfunc(w, deg_x)
             + "$"
         )
-
         ax.legend(loc="best", fontsize=10)
-        # plt.legend(bbox_to_anchor=(1, 1), loc="upper right", borderaxespad=1, fontsize=12)
         plt.savefig(save_fname)
         plt.show()
 
     # if data is 3 dimensional
     elif data.shape[1] == 3:
-        x = data[:, 0]
-        y = data[:, 1]
-        z = data[:, 2]
-        # pLot_3d(x1, x2, x3, deg1, deg2, regular)
-        fig, ax = plt.subplots(
-            nrows=2,
-            ncols=2,
-            figsize=(12, 8),
-            gridspec_kw={"width_ratios": [8, 7]},
-        )
-        fig.subplots_adjust(hspace=0.4, wspace=0.2)
-        fig.suptitle(graphtitle, fontsize=16)
-        plt.rcParams["font.size"] = 12
-        ax[0, 0].set(title="X - Y", xlabel="X", ylabel="Y")
-        ax[0, 0].scatter(x, y, s=20, c="darkblue", label="observed")
-        ax[0, 0].grid(ls="--")
-        ax[0, 0].legend(loc="best", fontsize=10)
-        # ax[0, 0].legend(bbox_to_anchor=(0.99, 0.99), loc="upper right", borderaxespad=0, fontsize=10)
-        ax[1, 0].set(title="X - Y (color)", xlabel="X", ylabel="Y")
-        img = ax[1, 0].scatter(x, y, s=20, c=z, cmap="rainbow", label="observed")
-        fig.colorbar(img, ax=ax[1, 0], aspect=30, pad=0.01)
-        ax[1, 0].grid(ls="--")
-        ax[1, 0].legend(loc="best", fontsize=10)
-        # ax[1, 0].legend(bbox_to_anchor=(0.99, 0.99), loc="upper right", borderaxespad=0, fontsize=10)
-        ax[0, 1].set(title="Y - Z", xlabel="Y", ylabel="Z")
-        ax[0, 1].scatter(y, z, s=20, c="darkblue", label="observed")
-        ax[0, 1].grid(ls="--")
-        ax[0, 1].legend(loc="best", fontsize=10)
-        # ax[0, 1].legend(bbox_to_anchor=(0.99, 0.01), loc="lower right", borderaxespad=0, fontsize=10)
-        ax[1, 1].set(title="Z - X", xlabel="Z", ylabel="X")
-        ax[1, 1].scatter(z, x, s=20, c="darkblue", label="observed")
-        ax[1, 1].grid(ls="--")
-        ax[1, 1].legend(loc="best", fontsize=10)
-        # ax[1, 1].legend(bbox_to_anchor=(0.99, 0.99), loc="upper right", borderaxespad=0, fontsize=10)
+        x = data[:, 0]  # load x1
+        y = data[:, 1]  # load x2
+        z = data[:, 2]  # load x3
 
-        ax_pos_0 = ax[0, 0].get_position()
-        ax_pos_1 = ax[1, 0].get_position()
-        ax[0, 0].set_position(
-            [ax_pos_0.x0, ax_pos_0.y0, ax_pos_1.width, ax_pos_1.height]
-        )
-        # fig.tight_layout()
-        plt.savefig(path + "/result/data3_1.png")
-        plt.show()
+        # define coordinates for regression assumption
+        reg_x = np.linspace(x.min(), x.max(), 30)
+        reg_y = np.linspace(y.min(), y.max(), 30)
+        reg_x, reg_y = np.meshgrid(reg_x, reg_y)
+        reg_z = np.zeros_like(reg_x)
+        w = regression_3d(x, y, z, deg_x, deg_y, lam)
+        # print(w)
+        for i in range(deg_x + 1):
+            reg_z += w[i] * reg_x ** i
+        for i in range(deg_y):
+            reg_z += w[deg_x + i + 1] * reg_y ** (i + 1)
 
-        # X, Y = np.meshgrid(x, y)
+        # plot original data and regression assumption
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
-        ax.scatter3D(x, y, z, s=20, c="darkblue")
+        ax.scatter3D(x, y, z, s=20, c="darkblue", label="observed")
+        ax.plot_wireframe(
+            reg_x, reg_y, reg_z, color="red", linewidth=0.5, label="predictied"
+        )
         ax.set(
-            title=graphtitle + "_3D",
+            title=graphtitle
+            + "_3D  (deg_x = {0}, deg_y = {1}, lam = {2})\n".format(deg_x, deg_y, lam)
+            + "$f(x) = "
+            + latexfunc(w, deg_x, deg_y)
+            + "$",
             xlabel="X",
             ylabel="Y",
             zlabel="Z",
         )
+        ax.legend(loc="best", fontsize=10)
+        plt.savefig(save_fname.replace("gif", "png"))
 
-        X = np.linspace(x.min(), x.max(), 30)
-        Y = np.linspace(y.min(), y.max(), 30)
-        X, Y = np.meshgrid(X, Y)
-        Z_hat = 5 * X * Y
-        ax.plot_wireframe(X, Y, Z_hat, color="red", label="predictied")
-
+        # unused
         """
         def init():
             ax.scatter3D(x, y, z, s=20, c="darkblue")
@@ -155,10 +225,22 @@ def main():
         """
 
         def update(i):
+            """
+            Move view point.
+
+            Parameters:
+                i : int
+                    Number of frames.
+
+            Returns:
+                fig : matplotlib.figure.Figure
+                    Figure viewed from angle designated by view_init function.
+            """
+
             ax.view_init(elev=30.0, azim=3.6 * i)
             return fig
 
-        # Animate
+        # animate graph
         ani = animation.FuncAnimation(fig, update, frames=100, interval=100)
         ani.save(save_fname, writer="pillow")
         # ani.save(path + "/result/data3_result3D.mp4", writer="ffmpeg", dpi=100)
@@ -166,33 +248,32 @@ def main():
 
 
 if __name__ == "__main__":
-    """
     # process args
-    parser = argparse.ArgumentParser(
-        description="apply filter (HPF, LPF, BFF, BEF) to wav file"
-    )
+    parser = argparse.ArgumentParser(description="Regression and Regularization.")
+    parser.add_argument("fname", type=str, help="Load Filename")
+    parser.add_argument("save_fname", type=str, help="Save Filename")
     parser.add_argument(
-        "sc",
-        type=str,
-        default="/wav/sample.wav",
-        help="input filename with extension (Default : wav/sample.wav)",
-    )
-    parser.add_argument(
-        "dst",
-        type=str,
-        default="/result/sample_filtered.wav",
-        help="output filename with extension (Default : result/sample_filtered.wav)",
-    )
-    parser.add_argument(
-        "--bef",
+        "-x",
+        dest="deg_x",
         type=int,
-        nargs=2,
-        metavar="freq",
-        help="low and high frequency [Hz]",
+        help="Degree for x in regression function",
+        required=True,
     )
-
+    parser.add_argument(
+        "-y",
+        dest="deg_y",
+        type=int,
+        help="Degree for y in regression function (optional, Default = 0).\nif you load data3.csv, this is required.",
+        required=False,
+        default=0,
+    )
+    parser.add_argument(
+        "-l",
+        dest="lam",
+        type=float,
+        help="Normalization coefficient (optional, Default = 0).",
+        required=False,
+        default=0,
+    )
     args = parser.parse_args()
-    """
-
-    # main(args)
-    main()
+    main(args)
