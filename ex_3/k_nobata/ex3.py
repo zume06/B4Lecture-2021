@@ -193,5 +193,5 @@ def main():
     pdscatter2(df2, x2, y2)
     pdscatter3(df3, x3, y3, z3)
 
-if __name__ =="__main__":
+if __name__ == "__main__":
       main()
