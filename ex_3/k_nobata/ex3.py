@@ -64,6 +64,7 @@ def pdscatter3(df, x, y, z, save, w_str):
 
     plt.grid()
     plt.legend()  #凡例の追加
+    ax.view_init(elev=10, azim=50) #回転
     plt.savefig(save)
     plt.show()
 
