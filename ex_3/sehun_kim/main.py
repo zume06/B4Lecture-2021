@@ -100,9 +100,7 @@ def reg_3d(data, order_x, order_y, nc):
     ax.legend()
     plt.savefig("result_3d.png")
 
-
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser(
         description='Program for plotting regression equation.\nFile name, order for regression equation are required.')
     parser.add_argument("-f", dest="filename", help='Filename', required=True)
@@ -119,3 +117,7 @@ if __name__ == "__main__":
             reg_3d(data, args.order_x, args.order_y, args.nc)
     else:
         reg_2d(data, args.order_x, args.nc)
+
+if __name__ == "__main__":
+    main()
+
