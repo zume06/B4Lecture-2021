@@ -43,8 +43,8 @@ class LinearRegression:
         c = lam * np.eye(phi.shape[1])
         A = np.dot(phi.T, phi) + c
         B = np.dot(phi.T, y)
-        # self.coef = np.dot(np.linalg.inv(A), B)
-        self.coef = np.dot(np.linalg.pinv(A), B)
+        self.coef = np.dot(np.linalg.inv(A), B)
+        # self.coef = np.dot(np.linalg.pinv(A), B)
 
         return self
 
