@@ -1,13 +1,13 @@
 # include flake8, black
 
 import argparse
+import os
+
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.animation as animation
-from sympy import Symbol, latex
-import os
+from sympy import latex, Symbol
 
 
 def regression_2d(x, y, deg, lam):
@@ -142,8 +142,8 @@ def main(args):
     # For example, if fname = data1.csv, graphtitle = data1
     graphtitle = my_removesuffix(fname, ".csv")
 
-    fname = path + "/data/" + fname
-    save_fname = path + "/result/" + save_fname
+    fname = os.path.join(path, "data", fname)
+    save_fname = os.path.join(path, "result", save_fname)
 
     # load csv file and convert to ndarray
     data = pd.read_csv(fname).values
@@ -158,8 +158,12 @@ def main(args):
         reg_y = np.zeros_like(reg_x)
         w = regression_2d(x, y, deg_x, lam)
         # print(w)
+
+        y_hat = np.zeros_like(x)
         for i in range(len(w)):
             reg_y += w[i] * reg_x ** i
+            y_hat += w[i] * x ** i
+        mse = round(np.mean((y - y_hat) ** 2), 3)
 
         # plot original data and regression assumption
         fig = plt.figure()
@@ -169,7 +173,7 @@ def main(args):
         ax.grid(ls="--")
         ax.set_title(
             graphtitle
-            + "  (deg = {0}, lam = {1})\n".format(deg_x, lam)
+            + "  (deg = {0}, lam = {1})  MSE = {2:.3f}\n".format(deg_x, lam, mse)
             + "$f(x) = "
             + latexfunc(w, deg_x)
             + "$"
@@ -191,10 +195,15 @@ def main(args):
         reg_z = np.zeros_like(reg_x)
         w = regression_3d(x, y, z, deg_x, deg_y, lam)
         # print(w)
+
+        z_hat = np.zeros_like(x)
         for i in range(deg_x + 1):
             reg_z += w[i] * reg_x ** i
+            z_hat += w[i] * x ** i
         for i in range(deg_y):
             reg_z += w[deg_x + i + 1] * reg_y ** (i + 1)
+            z_hat += w[deg_x + i + 1] * y ** (i + 1)
+        mse = round(np.mean((z - z_hat) ** 2), 3)
 
         # plot original data and regression assumption
         fig = plt.figure()
@@ -205,7 +214,9 @@ def main(args):
         )
         ax.set(
             title=graphtitle
-            + "_3D  (deg_x = {0}, deg_y = {1}, lam = {2})\n".format(deg_x, deg_y, lam)
+            + "_3D  (deg_x = {0}, deg_y = {1}, lam = {2})  MSE = {3:.3f}\n".format(
+                deg_x, deg_y, lam, mse
+            )
             + "$f(x, y) = "
             + latexfunc(w, deg_x, deg_y)
             + "$",
@@ -254,25 +265,23 @@ if __name__ == "__main__":
     parser.add_argument("save_fname", type=str, help="Save Filename")
     parser.add_argument(
         "-x",
-        dest="deg_x",
+        "--deg_x",
         type=int,
         help="Degree for x in regression function",
         required=True,
     )
     parser.add_argument(
         "-y",
-        dest="deg_y",
+        "--deg_y",
         type=int,
         help="Degree for y in regression function (optional, Default = 0).\nif you load data3.csv, this is required.",
-        required=False,
         default=0,
     )
     parser.add_argument(
         "-l",
-        dest="lam",
+        "--lam",
         type=float,
         help="Normalization coefficient (optional, Default = 0).",
-        required=False,
         default=0,
     )
     args = parser.parse_args()
