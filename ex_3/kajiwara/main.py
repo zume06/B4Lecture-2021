@@ -1,3 +1,4 @@
+import os
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -14,6 +15,10 @@ TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
 def main(args):
     result_path = Path(args.save_path)
+    timestamp = datetime.now().strftime(TIME_TEMPLATE)
+    result_path = result_path/timestamp
+    if not os.path.exists(result_path):
+        os.mkdir(result_path)
 
     assert result_path.exists(), '{} is not exist'.format(result_path)
 
