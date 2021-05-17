@@ -48,6 +48,32 @@ class LinearRegression:
 
         return self
 
+    def predict(self, X):
+        '''
+        predict data using self.coef and input data X.
+
+        Parameters
+        ----------
+        X : array
+            data for using prediction
+
+        Returns
+        -------
+        pred : array
+            prediction
+        '''
+
+        pred = []
+
+        poly = PolynomialFeatures(self.digree)
+        X_poly = poly.fit_transform(X)
+
+        for x in X_poly:
+            y = self.coef @ x
+            pred.append(y)
+
+        return pred
+
     def get_equation(self):
         '''
         return regression equation as string
