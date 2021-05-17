@@ -11,7 +11,7 @@ class LinearRegression:
         self.v_num = 0
         self.coef = None
 
-    def fit(self, X, y, sample_weight=None):
+    def fit(self, X, y, lam=1.0, sample_weight=None):
         '''
         Fit linear model.
 
@@ -23,6 +23,8 @@ class LinearRegression:
             Target values
         sample_weight : array, default=None
             Individual weights for each sample
+        lam : float
+            hyper parameter for regularization
 
         Returns
         -------
@@ -38,7 +40,8 @@ class LinearRegression:
         #     p = X**i
         #     phi[:, i] = p.ravel()
 
-        A = np.dot(phi.T, phi)
+        c = lam * np.eye(phi.shape[1])
+        A = np.dot(phi.T, phi) + c
         B = np.dot(phi.T, y)
         # self.coef = np.dot(np.linalg.inv(A), B)
         self.coef = np.dot(np.linalg.pinv(A), B)
