@@ -109,8 +109,8 @@ def main():
     parser.add_argument("--input_path", type=str, required=True, help="input file path")
     parser.add_argument("--reg_x_d", type=int, required=True, help="regression degrees of x")
     parser.add_argument("--reg_y_d", type=int, default=2, help="regression degrees of y")
-    parser.add_argument("--reg_dimension", type=int, required=True, help="regression dimension")
-    parser.add_argument("--lamda", type=float, default=0.5, help="regularization parameters")
+    parser.add_argument("--reg_dim", type=int, required=True, help="regression dimension")
+    parser.add_argument("--lam", type=float, default=0.5, help="regularization parameters")
     parser.add_argument("--output_name", type=str, default='result', help='output file name')
     args = parser.parse_args()
 
@@ -120,12 +120,12 @@ def main():
     # load data
     data = pd.read_csv(args.input_path)
 
-    if args.reg_dimension == 2:
+    if args.reg_dim == 2:
         # split data
         x, y = np.array(data.x1), np.array(data.x2)
         
         # regression
-        x_reg, y_reg, w = reg_2d(x, y, args.reg_x_d, args.lamda)
+        x_reg, y_reg, w = reg_2d(x, y, args.reg_x_d, args.lam)
         reg_label = get_label_2d(w)
 
         # setting graphic space 
@@ -153,7 +153,7 @@ def main():
         x, y, z = np.array(data.x1), np.array(data.x2), np.array(data.x3)
 
         # regression
-        w = reg_3d(x, y, z, args.reg_x_d, args.reg_y_d, args.lamda)
+        w = reg_3d(x, y, z, args.reg_x_d, args.reg_y_d, args.lam)
         reg_label = get_label_3d(w, args.reg_x_d, args.reg_y_d)
 
         # setting graphic
