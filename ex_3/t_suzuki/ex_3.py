@@ -119,21 +119,15 @@ def main():
     
     # load data
     data = pd.read_csv(args.input_path)
+
     if args.reg_dimension == 2:
+        # split data
         x, y = np.array(data.x1), np.array(data.x2)
-    else:
-        x, y, z = np.array(data.x1), np.array(data.x2), np.array(data.x3)
-
-    # regression
-    if args.reg_dimension == 2:
+        
+        # regression
         x_reg, y_reg, w = reg_2d(x, y, args.reg_x_d, args.lamda)
-        # get regression label
         reg_label = get_label_2d(w)
-    else:
-        w = reg_3d(x, y, z, args.reg_x_d, args.reg_y_d, args.lamda)
-        reg_label = get_label_3d(w, args.reg_x_d, args.reg_y_d)
 
-    if args.reg_dimension == 2:
         # setting graphic space 
         plt.rcParams["xtick.direction"] = "in"
         plt.rcParams["ytick.direction"] = "in"
@@ -155,6 +149,13 @@ def main():
         fig.savefig(f'./out/{args.output_name}')
 
     else:
+        # split data
+        x, y, z = np.array(data.x1), np.array(data.x2), np.array(data.x3)
+
+        # regression
+        w = reg_3d(x, y, z, args.reg_x_d, args.reg_y_d, args.lamda)
+        reg_label = get_label_3d(w, args.reg_x_d, args.reg_y_d)
+
         # setting graphic
         fig = plt.figure()
         ax = Axes3D(fig)
@@ -164,6 +165,7 @@ def main():
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
+
         # prepare regression data
         x_reg = np.arange(x.min(), x.max(), 0.1)
         y_reg = np.arange(y.min(), y.max(), 0.1)
@@ -173,6 +175,7 @@ def main():
             z_reg += w[i] * (mesh_x**i)
         for j in range(args.reg_y_d):
             z_reg += w[j+args.reg_x_d+1] * (mesh_y**(j+1))
+        
         # plot regression
         ax.plot_wireframe(mesh_x, mesh_y, z_reg, color='red', label=reg_label)
         ax.legend()
