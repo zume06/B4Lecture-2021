@@ -258,7 +258,7 @@ def main(args):
         y_axis="linear",
         cmap="rainbow",
     )
-    t = np.linspace(0, signal.size / sr, f0.size)
+    t = np.linspace(0, (signal.size - win_size) / sr, f0.size)
     plt.ylim(0, 1000)
     plt.plot(t, f0, color="black")
     plt.title("F0 ({})".format(args.f0))
