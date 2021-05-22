@@ -41,7 +41,7 @@ def frame(input, win_size, shift_size):
 
 def peak(input, neighbor):
     """
-    Calculate index of maximum peak of input along 1st demension.
+    Calculate index of maximum peak of input.
 
     # Args
         input (ndarray) :input array
@@ -62,7 +62,7 @@ def peak(input, neighbor):
     candidate = np.copy(input[neighbor:-neighbor])
     # remove point except for peak
     candidate[np.argmax(frames, axis=1) != neighbor] = -np.inf
-    # calculate makimum of peak
+    # calculate maximum of peak
     peaks = np.argmax(candidate, axis=0) + neighbor
     return peaks
 
@@ -100,7 +100,7 @@ def ac_to_f0(ac, sr):
     Culculate f0 from auto-correlation
 
     # Args
-        ac (ndarray, axis=(gap, frame)) :autocorreration
+        ac (ndarray, axis=(gap, frame)) :auto-correlation
         sr (int)     :sampling rate
 
     # Returns
@@ -138,7 +138,7 @@ def ceps(spec_db, threshold, sr):
     ceps = np.fft.rfft(spec_db, axis=0)
     ceps = ceps.real
 
-    # separate
+    # liftering
     env = np.zeros_like(ceps)
     env[:threshold] = ceps[:threshold]
     micro = np.zeros_like(ceps)
