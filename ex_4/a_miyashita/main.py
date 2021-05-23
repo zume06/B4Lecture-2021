@@ -275,6 +275,7 @@ def main():
     plt.title("F0 ({})".format(args.f0))
     plt.xlabel("Time[sec]")
     plt.ylabel("Frequency[Hz]")
+    plt.colorbar()
     plt.show()
 
     # calculate envelope
