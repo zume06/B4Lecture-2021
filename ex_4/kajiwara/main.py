@@ -34,7 +34,7 @@ def main(args):
     db_spec = spectrogram(
         wave_data, win_size=1024, overlap=0.5, mode='faster', scale='db')
 
-    ac = autocorrelation(wave_data, win_size, sr)
+    ac = autocorrelation(wave_data, win_size)
     peaks = get_ac_peaks(ac)
     f0 = sr / peaks
     times = np.linspace(0, (wave_data.size - win_size) / sr, f0.size)
@@ -69,15 +69,13 @@ def main(args):
     ceps_env = get_envelope(ceps_db, 100)
 
     a, e = levinson_durbin_method(wave_data, 100)
-    h = sp.signal.freqz(np.sqrt(e), a, clip_size, "whole")[1]
+    _, h = sp.signal.freqz(np.sqrt(e), a, clip_size, "whole")
     lpc_env = 20 * np.log10(np.abs(h))
 
     freq = np.fft.rfft(wave_data, clip_size)
     amp = 20 * np.log10(np.abs(freq))
 
     fscale = np.fft.fftfreq(clip_size, d=1.0 / sr)
-    # freq_nyquist = sr / 2
-    # fscale = np.linspace(0, freq_nyquist, freq.shape[0]) / 1000
 
     plt.plot(fscale[:clip_size//2], amp[:clip_size//2], label='spectrum')
     plt.plot(fscale[:clip_size//2], ceps_env[:clip_size//2], label='cepstrum')
