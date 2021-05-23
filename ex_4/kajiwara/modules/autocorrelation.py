@@ -1,7 +1,7 @@
 import numpy as np
+# import scipy
 
 from .utils import get_framing_data
-# from .stft import faster_stft, instft
 
 
 def autocorrelation(input, win_size, sr):
@@ -10,7 +10,9 @@ def autocorrelation(input, win_size, sr):
     for frame in framing_data:
         fft_data = np.fft.fft(frame)
         power = np.abs(fft_data)**2
-        ac.append(np.fft.ifft(power, axis=0).real)
+        _ac = np.fft.ifft(power, axis=0).real
+        # _ac /= np.max(_ac)
+        ac.append(_ac)
 
     return np.array(ac, dtype='float')
 
@@ -26,5 +28,10 @@ def get_ac_peaks(ac):
                 peak_idx_list.append(i-1)
         max_idx = peak_val_list.index(max(peak_val_list))
         peaks.append(peak_idx_list[max_idx])
+
+        # ac_frame = ac_frame[int(len(ac_frame)/2):]
+        # relmax_index = scipy.signal.argrelmax(ac_frame)[0]
+        # peak_index = np.argmax(ac_frame[relmax_index])
+        # peaks.append(relmax_index[peak_index])
 
     return np.array(peaks)
