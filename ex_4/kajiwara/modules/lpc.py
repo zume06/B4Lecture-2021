@@ -5,7 +5,6 @@ def levinson_durbin_method(wave_data, dim):
     ac = np.correlate(wave_data, wave_data, mode='full')
     ac = ac[len(wave_data)-1:len(wave_data)+dim]
 
-    # a = np.zeros((dim + 1, ac.shape[1]))
     a = np.zeros(dim+1)
     a[0] = 1
     a[1] = -ac[1]/ac[0]
