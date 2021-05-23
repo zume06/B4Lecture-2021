@@ -6,7 +6,6 @@ import librosa.display
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.linalg import solve_toeplitz
-from scipy.signal import freqz
 import soundfile
 
 import ex_1.a_miyashita.main as ex1
@@ -67,7 +66,7 @@ def peak(input, neighbor):
     return peaks
 
 
-def AC(signal, win_size):
+def auto_corr(signal, win_size):
     """
     Calculate auto-correlation.
 
@@ -158,7 +157,7 @@ def ceps(spec_db, threshold, sr):
     return f0, env, micro
 
 
-def LevinsonDurbin(r):
+def levinson_durbin(r):
     """
     Solve Yule-Walker equation.
 
@@ -188,7 +187,7 @@ def LevinsonDurbin(r):
     return a, e
 
 
-def LPC(signal, win_size, deg, method):
+def lpc(signal, win_size, deg, method):
     """
     Calculate envelope by linear prediction
 
@@ -201,23 +200,23 @@ def LPC(signal, win_size, deg, method):
     # Returns
         env (ndarray, axis=(freq, frame)) :envelope log spectrogram
     """
-    ac = AC(signal, win_size)
+    ac = auto_corr(signal, win_size)
     r = ac[:deg]
 
     start = time.time()
 
     # solve Yule-Walker equation
-    if method == "ld_ewise":
-        a, e = LevinsonDurbin(r)
+    if method == 'ld_ewise':
+        a, e = levinson_durbin(r)
 
-    elif method == "ld_for":
+    elif method == 'ld_for':
         a = np.zeros_like(r)
         a[0] = 1.0
         e = np.zeros(a.shape[1])
         for i in range(a.shape[1]):
-            a[:, i], e[i] = LevinsonDurbin(r[:, i])
+            a[:, i], e[i] = levinson_durbin(r[:, i])
 
-    elif method == "scipy":
+    elif method == 'scipy':
         a = np.zeros_like(r)
         a[0] = 1.0
         for i in range(r.shape[1]):
@@ -236,38 +235,50 @@ def LPC(signal, win_size, deg, method):
     return env
 
 
-def main(args):
+def main():
+    # process args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("fname", type=str, help="input filename with extension .wav")
+    parser.add_argument(
+        "--f0", 
+        choices=['ac', 'ceps'], 
+        default='ac', 
+        help="method for calculate f0",
+    )
+    parser.add_argument(
+        "--lpc",
+        choices=['ld_ewise', 'ld_for', 'scipy'],
+        default='ld_ewise',
+        help="method for solve Yule-Walker equation",
+    )
+    args = parser.parse_args()
+    
     signal, sr = soundfile.read(args.fname)
     win_size = 1024
     spec = ex1.stft(signal, win_size)
     spec_db = librosa.amplitude_to_db(np.abs(spec))
 
     # calculate f0
-    if args.f0 == "ac":
-        ac = AC(signal, win_size)
+    if args.f0 == 'ac':
+        ac = auto_corr(signal, win_size)
         f0 = ac_to_f0(ac, sr)
-    elif args.f0 == "ceps":
+    elif args.f0 == 'ceps':
         f0 = ceps(spec_db, 68, sr)[0]
 
     # plot f0
     librosa.display.specshow(
-        spec_db,
-        sr=sr,
-        hop_length=win_size // 2,
-        x_axis="time",
-        y_axis="linear",
-        cmap="rainbow",
+        spec_db, sr=sr, hop_length=win_size // 2, x_axis='time', y_axis='linear', cmap='rainbow',
     )
     t = np.linspace(0, (signal.size - win_size) / sr, f0.size)
     plt.ylim(0, 1000)
-    plt.plot(t, f0, color="black")
+    plt.plot(t, f0, color='black')
     plt.title("F0 ({})".format(args.f0))
     plt.xlabel("Time[sec]")
     plt.ylabel("Frequency[Hz]")
     plt.show()
 
     # calculate envelope
-    env1 = LPC(signal, win_size, 32, args.lpc)
+    env1 = lpc(signal, win_size, 32, args.lpc)
     env2 = ceps(spec_db, 68, sr)[1]
 
     # plot envelope
@@ -283,17 +294,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # process args
-    parser = argparse.ArgumentParser()
-    parser.add_argument("fname", type=str, help="input filename with extension .wav")
-    parser.add_argument(
-        "--f0", choices=["ac", "ceps"], default="ac", help="method for calculate f0"
-    )
-    parser.add_argument(
-        "--lpc",
-        choices=["ld_ewise", "ld_for", "scipy"],
-        default="ld_ewise",
-        help="method for solve Yule-Walker equation",
-    )
-    args = parser.parse_args()
-    main(args)
+    main()
