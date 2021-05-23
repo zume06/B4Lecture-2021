@@ -13,7 +13,7 @@ def get_cepstrum(input, is_clipping, is_framing,  clip_size=2048, win_size=1024,
         framing_data = get_framing_data(input, win_size, overlap)
         spec = np.fft.rfft(framing_data)
 
-    spec_db = np.log(np.abs(spec))
+    spec_db = 20 * np.log10(np.abs(spec))
     ceps_db = np.fft.irfft(spec_db)
 
     return ceps_db.real

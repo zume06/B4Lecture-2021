@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 
 import numpy as np
+import scipy as sp
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 from modules.autocorrelation import autocorrelation, get_ac_peaks
 from modules.cepstrum import get_cepstrum, get_ceps_peaks, get_envelope
 from modules.spectrogram import spectrogram
+from modules.lpc import levinson_durbin_method
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
@@ -65,11 +67,21 @@ def main(args):
     clip_size = 8192
     ceps_db = get_cepstrum(wave_data, is_clipping=True, is_framing=False, clip_size=clip_size)
     ceps_env = get_envelope(ceps_db, 100)
+
+    a, e = levinson_durbin_method(wave_data, 100)
+    h = sp.signal.freqz(np.sqrt(e), a, clip_size, "whole")[1]
+    lpc_env = 20 * np.log10(np.abs(h))
+
     freq = np.fft.rfft(wave_data, clip_size)
-    amp = np.log(np.abs(freq))
+    amp = 20 * np.log10(np.abs(freq))
+
     fscale = np.fft.fftfreq(clip_size, d=1.0 / sr)
+    # freq_nyquist = sr / 2
+    # fscale = np.linspace(0, freq_nyquist, freq.shape[0]) / 1000
+
     plt.plot(fscale[:clip_size//2], amp[:clip_size//2], label='spectrum')
     plt.plot(fscale[:clip_size//2], ceps_env[:clip_size//2], label='cepstrum')
+    plt.plot(fscale[:clip_size//2], lpc_env[:clip_size//2], label='lpc')
     plt.title("amplitude characteristic")
     plt.xlabel("Frequency[Hz]")
     plt.ylabel("Amplitude")
