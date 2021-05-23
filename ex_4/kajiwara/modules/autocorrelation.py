@@ -4,7 +4,7 @@ import numpy as np
 from .utils import get_framing_data
 
 
-def autocorrelation(input, win_size, sr):
+def autocorrelation(input, win_size):
     framing_data = get_framing_data(input, win_size)
     ac = []
     for frame in framing_data:
