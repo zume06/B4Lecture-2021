@@ -3,21 +3,26 @@ import numpy as np
 from .utils import get_framing_data
 
 
-def get_cepstrum(input):
-    framing_data = get_framing_data(input, 1024, 0.5)
-    spec = np.fft.rfft(framing_data)
+def get_cepstrum(input, is_clipping, is_framing,  clip_size=2048, win_size=1024, overlap=0.5):
+    assert not (is_clipping and is_framing), 'The two values (is_clipping, is_framing) ​​must be different'
+
+    if is_clipping:
+        spec = np.fft.rfft(input, clip_size)
+
+    if is_framing:
+        framing_data = get_framing_data(input, win_size, overlap)
+        spec = np.fft.rfft(framing_data)
+
     spec_db = np.log(np.abs(spec))
     ceps_db = np.fft.irfft(spec_db)
 
-    return ceps_db
+    return ceps_db.real
 
 
 def get_ceps_peaks(ceps, sr, max=200, min=50):
-    # ケプストラムの最大次数、最小次数
     max_cep_order = int(np.floor(sr / min))
     min_cep_order = int(np.floor(sr / max))
 
-    # ピーク位置の検出
     peak_index = np.argmax(ceps[:, min_cep_order:max_cep_order], axis=1)
     peak_index = peak_index + min_cep_order
 
@@ -26,8 +31,8 @@ def get_ceps_peaks(ceps, sr, max=200, min=50):
 
 def get_envelope(ceps, coef=20):
     ceps_liftered = ceps.copy()
-    ceps_liftered[coef:len(ceps)-coef] = 0
+    ceps_liftered[coef:-coef] = 0
 
-    envelope = np.fft.irfft(ceps_liftered, axis=0)
+    envelope = np.fft.rfft(ceps_liftered)
 
     return envelope
