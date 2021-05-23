@@ -8,7 +8,7 @@ import librosa.display
 import matplotlib.pyplot as plt
 
 from modules.autocorrelation import autocorrelation, get_ac_peaks
-from modules.cepstrum import get_cepstrum
+from modules.cepstrum import get_cepstrum, get_ceps_peaks
 from modules.spectrogram import spectrogram
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
@@ -44,11 +44,12 @@ def main(args):
     plt.xlabel("Time [sec]")
     plt.ylabel("Frequency [Hz]")
     plt.savefig(result_path/'f0_ac.png')
+    plt.clf()
+    plt.close()
 
     ceps_db = get_cepstrum(wave_data)
-    peak_index = np.argmax(ceps_db, axis=0)
-    peaks = peak_index
-    f0 = sr / peaks
+    peak_index = get_ceps_peaks(ceps_db, sr)
+    f0 = sr / peak_index
     times = np.linspace(0, (wave_data.size - win_size) / sr, f0.size)
     librosa.display.specshow(
         db_spec, sr=sr, x_axis='time', y_axis='linear', cmap='rainbow')
@@ -58,6 +59,8 @@ def main(args):
     plt.xlabel("Time[sec]")
     plt.ylabel("Frequency[Hz]")
     plt.savefig(result_path/'f0_ceps.png')
+    plt.clf()
+    plt.close()
 
 
 if __name__ == "__main__":
