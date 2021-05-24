@@ -15,6 +15,7 @@ def reg_2d(x, y, d, l):
         y-coordinates of the sample points
     d : int
         regression line degrees
+    l : regularization parameter
 
     output
     x_label : regression x label
@@ -31,6 +32,7 @@ def reg_2d(x, y, d, l):
 
     return x_label, y_reg, w
 
+
 def reg_3d(x, y, z, x_d, y_d, l):
     """
     input
@@ -44,6 +46,7 @@ def reg_3d(x, y, z, x_d, y_d, l):
           regression line degrees of x
     y_d : int
           regression line degrees of y
+    l : regularization parameter
 
     output
     w : regression factor
@@ -81,6 +84,7 @@ def get_label_2d(w):
             label += f'{w_i:+.2}$x^{{{d-1-i}}}$'
 
     return label
+
 
 def get_label_3d(w, x_d, y_d):
     """
