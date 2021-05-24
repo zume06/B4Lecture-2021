@@ -2,6 +2,24 @@ import numpy as np
 
 
 def get_framing_data(input, win_size, overlap=0.5):
+    '''
+    get_framing_data is framing data
+
+    Parameters
+    ----------
+    input: ndarray
+        input data
+    win_size: int
+        window size
+    overlap: float
+        overlap value
+
+    Returns
+    -------
+    framing_data: ndarray
+        framing data
+    '''
+
     input_length = len(input)
     shift_size = int(win_size*overlap)
 

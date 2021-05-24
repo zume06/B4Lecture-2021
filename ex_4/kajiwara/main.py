@@ -3,7 +3,6 @@ from pathlib import Path
 from datetime import datetime
 
 import numpy as np
-import scipy as sp
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
@@ -11,7 +10,7 @@ import matplotlib.pyplot as plt
 from modules.autocorrelation import autocorrelation, get_ac_peaks
 from modules.cepstrum import get_cepstrum, get_ceps_peaks, get_envelope
 from modules.spectrogram import spectrogram
-from modules.lpc import levinson_durbin_method
+from modules.lpc import lpc_method
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
@@ -30,11 +29,14 @@ def main(args):
 
     wave_data, sr = librosa.load(audio_path)
     win_size = 1024
+    overlap = 0.5
 
     db_spec = spectrogram(
-        wave_data, win_size=1024, overlap=0.5, mode='faster', scale='db')
+        wave_data, win_size=win_size, overlap=overlap, mode='faster', scale='db')
 
-    ac = autocorrelation(wave_data, win_size)
+    ''' extract f0 by autocorrelation method'''
+    ac = autocorrelation(
+        wave_data, is_framing=True, win_size=win_size, overlap=overlap)
     peaks = get_ac_peaks(ac)
     f0 = sr / peaks
     times = np.linspace(0, (wave_data.size - win_size) / sr, f0.size)
@@ -49,6 +51,7 @@ def main(args):
     plt.clf()
     plt.close()
 
+    '''extract f0 by cepstrum method'''
     ceps_db = get_cepstrum(wave_data, is_clipping=False, is_framing=True)
     peak_index = get_ceps_peaks(ceps_db, sr)
     f0 = sr / peak_index
@@ -64,18 +67,19 @@ def main(args):
     plt.clf()
     plt.close()
 
-    clip_size = 8192
-    ceps_db = get_cepstrum(wave_data, is_clipping=True, is_framing=False, clip_size=clip_size)
-    ceps_env = get_envelope(ceps_db, 100)
+    '''extract envelope'''
+    clip_size = len(wave_data)
+    dim = 100
 
-    a, e = levinson_durbin_method(wave_data, 100)
-    _, h = sp.signal.freqz(np.sqrt(e), a, clip_size, "whole")
-    lpc_env = 20 * np.log10(np.abs(h))
+    fscale = np.fft.fftfreq(clip_size, d=1.0 / sr)
 
     freq = np.fft.rfft(wave_data, clip_size)
     amp = 20 * np.log10(np.abs(freq))
 
-    fscale = np.fft.fftfreq(clip_size, d=1.0 / sr)
+    ceps_db = get_cepstrum(wave_data, is_clipping=True, is_framing=False, clip_size=clip_size)
+    ceps_env = get_envelope(ceps_db, dim)
+
+    lpc_env = lpc_method(wave_data, dim=dim, clip_size=clip_size)
 
     plt.plot(fscale[:clip_size//2], amp[:clip_size//2], label='spectrum')
     plt.plot(fscale[:clip_size//2], ceps_env[:clip_size//2], label='cepstrum')
