@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
+import argparse
 
 import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as ssig
-
-
-# In[2]:
-
 
 #自己相関関数
 def autocorrelation(data, order=None):
@@ -36,10 +31,6 @@ def autocorrelation(data, order=None):
         
     return ac
 
-
-# In[3]:
-
-
 #自己相関関数のピーク
 def peak(ac):
     """
@@ -60,10 +51,6 @@ def peak(ac):
             peak[i] = ac[i+1]
     m0 = np.argmax(peak)
     return m0
-
-
-# In[4]:
-
 
 #自己相関法による基本周波数
 def f0_ac(data, sr, F_size, overlap, S_num):
@@ -99,10 +86,6 @@ def f0_ac(data, sr, F_size, overlap, S_num):
             
     return f0_ac
 
-
-# In[5]:
-
-
 #ケプストラム作成
 def cepstrum(data):
     """
@@ -122,10 +105,6 @@ def cepstrum(data):
     cep = np.real(np.fft.ifft(power_spec)) #ifft
     
     return cep
-
-
-# In[6]:
-
 
 #ケプストラム法による基本周波数
 def f0_cep(data, sr, F_size, overlap, S_num, lif):
@@ -154,20 +133,15 @@ def f0_cep(data, sr, F_size, overlap, S_num, lif):
     f0 = np.zeros(S_num)
     len_data = len(data)
     for i in range(S_num):
-        data_ = data[i*overlap:i*overlap+F_size] * win
-        cep = cepstrum(data_)
+        windata = data[i*overlap:i*overlap+F_size] * win
+        cep = cepstrum(windata)
         
         m0 = np.argmax(cep[lif:len(cep)//2]) + lif
         f0[i] = sr / m0
     
     return f0
 
-
-# In[7]:
-
-
 #基本周波数とスペクトログラムのプロット
-#colorbar label
 def f_plot(f0_a, f0_c, data, Ts, sr):
     """
     parameters
@@ -192,14 +166,11 @@ def f_plot(f0_a, f0_c, data, Ts, sr):
     plt.xlabel("Times[s]", fontsize=15)
     plt.ylabel("Frequency[Hz]", fontsize=15)
     plt.legend()
+    plt.colorbar()
     plt.tight_layout()
-    plt.savefig('spectrogram32.png')
+    #plt.savefig("spectrogram"+str(lif)+".png")
     plt.show()
     plt.close()
-
-
-# In[8]:
-
 
 def cep_m(data, lif):
     """
@@ -221,10 +192,6 @@ def cep_m(data, lif):
     cep_env = 20 * np.real(np.fft.fft(cep))
     
     return cep_env
-
-
-# In[9]:
-
 
 def LevinsonDurbin(r, order):
     """
@@ -270,10 +237,6 @@ def LevinsonDurbin(r, order):
 
     return a, e[-1]
 
-
-# In[10]:
-
-
 #係数(1.0, -p)のFIRフィルタを作成
 def preemphasis(data,p):
     """
@@ -286,15 +249,11 @@ def preemphasis(data,p):
     
     return
     ---
-    ssig.lfilter([1.0,-p],1,data):numpy.ndarray
-                                  FIR filter
+    f:numpy.ndarray
+      FIR filter
     """
     f = ssig.lfilter([1.0,-p],1,data)
     return f
-
-
-# In[11]:
-
 
 #lpc法によるスペクトル包絡
 def lpc_m(data, order, F_size):
@@ -320,10 +279,6 @@ def lpc_m(data, order, F_size):
     lpc_env = 20*np.log10(np.abs(h))
     
     return lpc_env
-
-
-# In[15]:
-
 
 #スペクトル包絡描画
 def spe(log, cep, lpc, F_size, sr):
@@ -351,17 +306,14 @@ def spe(log, cep, lpc, F_size, sr):
     plt.ylabel("Log amplitude spectrum[dB]", fontsize=15)
     plt.legend()
     plt.tight_layout()
-    plt.savefig("spectrum32_64.png")
+    #plt.savefig("spectrum"+str(lif)+"_"+str(deg)+".png")
     plt.show()
     plt.close()
 
-
-# In[16]:
-
-
-def main():
-    f_name = "/Users/nobatakoki/B4輪行/ccnobata/新規録音.wav"
-    data, sr = librosa.load(f_name,sr=16000)    
+def main(args):
+    #fname = "/Users/nobatakoki/B4輪行/ccnobata/新規録音.wav"
+    fname = args.fname
+    data, sr = librosa.load(fname,sr=16000)    
 
     #基本周波数計算用
     F_size = 1024 #frame size
@@ -370,7 +322,8 @@ def main():
     Ts = float(F_num) / sr # 波形の長さ
     S_num = int(F_num // (F_size - overlap) - 1)  # 短時間区間数
     win = np.hamming(F_size)
-    lif = 32
+    #lif = 32
+    lif = args.lif
     
     #基本周波数計算&プロット
     f0_c = f0_cep(data, sr, F_size, overlap, S_num, lif)
@@ -383,7 +336,8 @@ def main():
     s_frame  =int(s*sr)
     pe_deta = preemphasis(data, p)
     windata=pe_deta[s_frame:s_frame+F_size] * win
-    deg = 64
+    #deg = 64
+    deg = args.deg
     
     #計算
     log = 20 * np.log10(np.abs(np.fft.fft(windata)))
@@ -392,28 +346,11 @@ def main():
     
     spe(log, cep, lpc, F_size, sr)
 
-
-# In[17]:
-
-
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fname", default="/Users/nobatakoki/B4輪行/ccnobata/新規録音.wav")
+    parser.add_argument("--lif", default=32)
+    parser.add_argument("--deg", default=64)
+    args = parser.parse_args()
 
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
+    main(args)
