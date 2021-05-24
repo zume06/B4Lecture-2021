@@ -1,9 +1,27 @@
 import numpy as np
+import scipy as sp
+
+from .autocorrelation import autocorrelation
 
 
-def levinson_durbin_method(wave_data, dim):
-    ac = np.correlate(wave_data, wave_data, mode='full')
-    ac = ac[len(wave_data)-1:len(wave_data)+dim]
+def toeplitz_solver(ac, dim):
+    '''
+    toeplitz_solver solve toeplitz matrix.
+
+    Parameters
+    ----------
+    ac: ndarray
+        autocorrelation of sequence data
+    dim: int
+        dimention of coef
+
+    Returns
+    -------
+    a: ndarray
+        predicted coefficient
+    e: float
+        prediction error
+    '''
 
     a = np.zeros(dim+1)
     a[0] = 1
@@ -17,3 +35,34 @@ def levinson_durbin_method(wave_data, dim):
         e *= 1 - k * k
 
     return a, e
+
+
+def lpc_method(wave_data, dim=100, clip_size=None):
+    '''
+    lpc_method extract spectrum envelope by LPC method
+
+    Parameters
+    ----------
+    wave_data: ndarray (1d)
+        audio data
+    dim: int
+        dimention of coef
+    clip_size: int
+        length of clipping data
+        if None, length of wave_data
+
+    Returns
+    -------
+    lpc_env: ndarray (1d)
+        spectrum envelope
+    '''
+
+    if clip_size is None:
+        clip_size = len(wave_data)
+
+    ac = autocorrelation(wave_data)
+    a, e = toeplitz_solver(ac, dim)
+    _, h = sp.signal.freqz(np.sqrt(e), a, clip_size, "whole")
+    lpc_env = 20 * np.log10(np.abs(h))
+
+    return lpc_env
