@@ -37,3 +37,11 @@ def get_framing_data(input, win_size, overlap=0.5):
         framing_data.append(x)
 
     return np.array(framing_data)
+
+
+def get_lb_method_error(ac, a, dim):
+    e = 0
+    for i in range(dim-1):
+        e += ac[i]*a[i]
+
+    return e

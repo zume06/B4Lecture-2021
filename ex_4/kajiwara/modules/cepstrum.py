@@ -43,7 +43,7 @@ def get_cepstrum(input, is_clipping, is_framing,  clip_size=2048, win_size=1024,
     return ceps_db.real
 
 
-def get_ceps_peaks(ceps, sr, max=200, min=50):
+def get_ceps_peaks(ceps, sr, max=300, min=50):
     '''
     get_ceps_peak detect peaks from given cepstrun
 
