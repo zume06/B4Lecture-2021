@@ -1,7 +1,9 @@
 import numpy as np
 import scipy as sp
+from scipy import linalg
 
 from .autocorrelation import autocorrelation
+from modules.utils import get_lb_method_error
 
 
 def toeplitz_solver(ac, dim):
@@ -37,7 +39,7 @@ def toeplitz_solver(ac, dim):
     return a, e
 
 
-def lpc_method(wave_data, dim=100, clip_size=None):
+def lpc_method(wave_data, mode='mine', dim=100, clip_size=None):
     '''
     lpc_method extract spectrum envelope by LPC method
 
@@ -45,6 +47,8 @@ def lpc_method(wave_data, dim=100, clip_size=None):
     ----------
     wave_data: ndarray (1d)
         audio data
+    mode: 'mine' or 'scipy'
+        toeplitz metrix solver type
     dim: int
         dimention of coef
     clip_size: int
@@ -61,7 +65,12 @@ def lpc_method(wave_data, dim=100, clip_size=None):
         clip_size = len(wave_data)
 
     ac = autocorrelation(wave_data)
-    a, e = toeplitz_solver(ac, dim)
+    if mode == 'mine':
+        a, e = toeplitz_solver(ac, dim)
+    elif mode == 'scipy':
+        a = linalg.solve_toeplitz((ac[:dim-1], ac[:dim-1]), ac[1:dim])
+        e = get_lb_method_error(ac, a, dim) / 1000
+
     _, h = sp.signal.freqz(np.sqrt(e), a, clip_size, "whole")
     lpc_env = 20 * np.log10(np.abs(h))
 

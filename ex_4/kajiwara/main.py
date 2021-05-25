@@ -81,9 +81,12 @@ def main(args):
 
     lpc_env = lpc_method(wave_data, dim=dim, clip_size=clip_size)
 
+    sp_lpc_env = lpc_method(wave_data, mode='scipy', dim=dim, clip_size=clip_size)
+
     plt.plot(fscale[:clip_size//2], amp[:clip_size//2], label='spectrum')
     plt.plot(fscale[:clip_size//2], ceps_env[:clip_size//2], label='cepstrum')
     plt.plot(fscale[:clip_size//2], lpc_env[:clip_size//2], label='lpc')
+    plt.plot(fscale[:clip_size//2], sp_lpc_env[:clip_size//2], label='sp_lpc')
     plt.title("amplitude characteristic")
     plt.xlabel("Frequency[Hz]")
     plt.ylabel("Amplitude")
