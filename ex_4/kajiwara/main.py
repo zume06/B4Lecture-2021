@@ -42,8 +42,8 @@ def main(args):
     times = np.linspace(0, (wave_data.size - win_size) / sr, f0.size)
     librosa.display.specshow(
         db_spec, sr=sr, x_axis='time', y_axis='linear', cmap='rainbow')
-    plt.plot(times, f0)
-    plt.ylim(0, 8000)
+    plt.plot(times, f0, color="green")
+    plt.ylim(0, 1000)
     plt.title("F0 AC")
     plt.xlabel("Time [sec]")
     plt.ylabel("Frequency [Hz]")
@@ -58,8 +58,8 @@ def main(args):
     times = np.linspace(0, (wave_data.size - win_size) / sr, f0.size)
     librosa.display.specshow(
         db_spec, sr=sr, x_axis='time', y_axis='linear', cmap='rainbow')
-    plt.plot(times, f0)
-    plt.ylim(0, 8000)
+    plt.plot(times, f0, color="green")
+    plt.ylim(0, 1000)
     plt.title("F0 Cepstrum")
     plt.xlabel("Time[sec]")
     plt.ylabel("Frequency[Hz]")
