@@ -10,11 +10,7 @@ import pandas as pd
 import random
 
 
-def makegif(process):
-    pass
-
-
-def k_means(data, n_clusters, centroids, max_iter=300, animation=False):
+def k_means(data, n_clusters, centroids, max_iter=300):
     """
     k-means clustering.
 
@@ -40,22 +36,26 @@ def k_means(data, n_clusters, centroids, max_iter=300, animation=False):
             'n_clusters and the number of "centroids" element must be the same.'
         )
 
+    # previous centroids
     prev_centroids = np.zeros_like(centroids)
+    # number of iterations
     iter = 0
     # process = []
 
     while np.count_nonzero(centroids - prev_centroids) and iter < max_iter:
         iter += 1
         prev_centroids = centroids.copy()
+
+        # square of distance
         dist_sq = np.array(
             [np.sum((data - centroid) ** 2, axis=1) for centroid in centroids]
         )
+
+        # calculate clusters and centroids
         labels = np.argmin(dist_sq, axis=0)
         clusters = [data[labels == label] for label in range(n_clusters)]
         centroids = np.array([np.mean(cluster, axis=0) for cluster in clusters])
 
-    if animation:
-        print(iter)
     return clusters, centroids
 
 
@@ -91,11 +91,18 @@ def init_lbg(data, n_clusters, delta=0.1):
         centroids : ndarray (shape (n_clusters, dimension))
             Centroids.
     """
+    # rough small vector
     delta = np.full(data.shape[1], delta)
+
+    # center of gravity
     centroids = np.array([np.mean(data, axis=0)])
+
     while len(centroids) < n_clusters:
         centroids = np.append(centroids - delta, centroids + delta, axis=0)
+        # k-means clustering
         _, centroids = k_means(data, len(centroids), centroids)
+
+    # select centroids
     centroids = centroids[random.sample(range(len(centroids)), n_clusters)]
 
     return centroids
@@ -115,21 +122,34 @@ def init_minimax(data, n_clusters):
         centroids : ndarray (shape (n_clusters, dimension))
             Centroids.
     """
+    # select first centroid index at random
     centroids_idx = [random.choice(range(len(data)))]
+
     while len(centroids_idx) < n_clusters:
+        # square of distance
         dist_sq = np.array(
             [np.sum((data - data[idx]) ** 2, axis=1) for idx in centroids_idx]
         )
+
+        # find next centroid index
         max_idx = np.argmax(np.min(dist_sq, axis=0))
         centroids_idx.append(max_idx)
+
+    # centroids index -> centroids
     centroids = data[centroids_idx]
     return centroids
 
 
 def main(args):
+    fname = args.fname
+    n_clusters = args.n_clusters
+    init = args.init
+
+    """
     fname = "data1.csv"
     n_clusters = 5
     init = "minimax"
+    """
 
     # get current working directory
     path = os.path.dirname(os.path.abspath(__file__))
@@ -144,7 +164,7 @@ def main(args):
 
     # k-means clustering
     centroids = eval("init_{}".format(init))(data, n_clusters)
-    clusters, centroids = k_means(data, n_clusters, centroids, animation=True)
+    clusters, centroids = k_means(data, n_clusters, centroids)
 
     cmap = plt.get_cmap("tab10")
 
@@ -240,24 +260,22 @@ def main(args):
 
 if __name__ == "__main__":
     # process args
-    parser = argparse.ArgumentParser(description="Regression and Regularization.")
-    """
-    parser.add_argument("fname", type=str, help="Load Filename")
-    parser.add_argument("save_fname", type=str, help="Save Filename")
+    parser = argparse.ArgumentParser(description="k-means clustering.")
+    parser.add_argument("fname", type=str, help="Load filename")
     parser.add_argument(
-        "-x",
-        "--deg_x",
+        "-n",
+        "--n_clusters",
         type=int,
-        help="Degree for x in regression function",
-        required=True,
+        help="The number of clusters (optional, Default = 5)",
+        default=5,
     )
     parser.add_argument(
-        "-y",
-        "--deg_y",
-        type=int,
-        help="Degree for y in regression function (optional, Default = 0).\nif you load data3.csv, this is required.",
-        default=0,
+        "-i",
+        "--init",
+        type=str,
+        help="Method to select initial centroids (optional, [random, lbg, minimax], Default = lbg)",
+        default="lbg",
+        choices=["random", "lbg", "minimax"],
     )
-    """
     args = parser.parse_args()
     main(args)
