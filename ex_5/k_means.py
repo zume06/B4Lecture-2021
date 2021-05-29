@@ -9,6 +9,7 @@ import csv
 import random
 import math
 
+
 def csv_open(fname):
     """
     Function for opening csv file
@@ -22,7 +23,6 @@ def csv_open(fname):
     file = pd.read_csv(fname)
     file = np.array(file)
     return file
-
 
 
 def pick_random(data, k):
@@ -52,7 +52,8 @@ def k_means_2d(data, k):
     """
     centroids = pick_random(data, k)
     x, y = data.T
-    plt.plot(centroids.T[0], centroids.T[1], 'x', color='r', label = 'Initial centroid')
+    plt.plot(centroids.T[0], centroids.T[1], 'x',
+             color='r', label='Initial centroid')
     cluster_n = []
     cluster = [k]
 
@@ -60,10 +61,12 @@ def k_means_2d(data, k):
         dist = np.array([])
         for j in range(k):
             dist = np.append(dist, np.linalg.norm(data[i] - centroids[j]))
-        cluster_n = np.append(cluster_n, np.argmin(dist))   # variable for which cluster every dot is in
+        # variable for which cluster every dot is in
+        cluster_n = np.append(cluster_n, np.argmin(dist))
 
     plt.scatter(x, y, c=cluster_n)
     k_means_2d_reg(data, k, cluster_n, centroids)
+
 
 def k_means_2d_reg(data, k, cluster_n, centroids):
     """
@@ -75,7 +78,7 @@ def k_means_2d_reg(data, k, cluster_n, centroids):
     cluster_n   : cluster information of each dot from previous calculation
     centroids   : centroid information of previous calculation
     """
-    sum = np.zeros(shape = (k,2))
+    sum = np.zeros(shape=(k, 2))
     e = 0
     x, y = data.T
     for i in range(len(data)):
@@ -84,15 +87,15 @@ def k_means_2d_reg(data, k, cluster_n, centroids):
                 sum[j] += data[i]
 
     n_points = np.array([])
-    center = np.zeros(shape=(k,2))
+    center = np.zeros(shape=(k, 2))
     for i in range(k):
         n_points = np.append(n_points, np.count_nonzero(cluster_n == i))
-        center[i][0] = sum[i][0]/n_points [i]
-        center[i][1] = sum[i][1]/n_points [i]
+        center[i][0] = sum[i][0]/n_points[i]
+        center[i][1] = sum[i][1]/n_points[i]
 
     center_x = center.T[0]
     center_y = center.T[1]
-    
+
     cluster_n = []
 
     for i in range(len(data)):
@@ -102,19 +105,18 @@ def k_means_2d_reg(data, k, cluster_n, centroids):
         cluster_n = np.append(cluster_n, np.argmin(dist))
 
     for j in range(k):
-        e += np.linalg.norm(center[j] - centroids[j], ord = 2)
+        e += np.linalg.norm(center[j] - centroids[j], ord=2)
     e_avg = e/k
 
     if e_avg == 0.0:
         plt.scatter(x, y, c=cluster_n)
-        plt.scatter(center_x,center_y, c='r', label = 'Calculated centroids')
+        plt.scatter(center_x, center_y, c='r', label='Calculated centroids')
         plt.legend()
         plt.savefig("plot.png")
         return 0
-    else :
+    else:
 
         k_means_2d_reg(data, k, cluster_n, center)
-
 
 
 def k_means_3d(data, k):
@@ -135,9 +137,11 @@ def k_means_3d(data, k):
         dist = np.array([])
         for j in range(k):
             dist = np.append(dist, np.linalg.norm(data[i] - centroids[j]))
-        cluster_n = np.append(cluster_n, np.argmin(dist))   # variable for which cluster every dot is in
+        # variable for which cluster every dot is in
+        cluster_n = np.append(cluster_n, np.argmin(dist))
 
     k_means_3d_reg(data, k, cluster_n, centroids)
+
 
 def k_means_3d_reg(data, k, cluster_n, centroids):
     """
@@ -149,7 +153,7 @@ def k_means_3d_reg(data, k, cluster_n, centroids):
     cluster_n   : cluster information of each dot from previous calculation
     centroids   : centroid information of previous calculation
     """
-    sum = np.zeros(shape = (k,3))
+    sum = np.zeros(shape=(k, 3))
     e = 0
     x, y, z = data.T
     for i in range(len(data)):
@@ -158,17 +162,17 @@ def k_means_3d_reg(data, k, cluster_n, centroids):
                 sum[j] += data[i]
 
     n_points = np.array([])
-    center = np.zeros(shape=(k,3))
+    center = np.zeros(shape=(k, 3))
     for i in range(k):
         n_points = np.append(n_points, np.count_nonzero(cluster_n == i))
-        center[i][0] = sum[i][0]/n_points [i]
-        center[i][1] = sum[i][1]/n_points [i]
-        center[i][2] = sum[i][2]/n_points [i]
+        center[i][0] = sum[i][0]/n_points[i]
+        center[i][1] = sum[i][1]/n_points[i]
+        center[i][2] = sum[i][2]/n_points[i]
 
     center_x = center.T[0]
     center_y = center.T[1]
     center_z = center.T[2]
-    
+
     cluster_n = []
 
     for i in range(len(data)):
@@ -178,24 +182,25 @@ def k_means_3d_reg(data, k, cluster_n, centroids):
         cluster_n = np.append(cluster_n, np.argmin(dist))
 
     for j in range(k):
-        e += np.linalg.norm(center[j] - centroids[j], ord = 2)
+        e += np.linalg.norm(center[j] - centroids[j], ord=2)
     e_avg = e/k
 
     if e_avg == 0.0:
         fig = plt.figure()
         ax = Axes3D(fig)
+
         def rotate(angle):
             ax.view_init(azim=angle)
         ax.scatter3D(x, y, z, c=cluster_n)
-        ax.scatter(center_x,center_y,center_z, c='r', label = 'Calculated centroids')
+        ax.scatter(center_x, center_y, center_z,
+                   c='r', label='Calculated centroids')
         plt.legend()
-        rot_animation = animation.FuncAnimation(fig, rotate, frames=100, interval=50)
+        rot_animation = animation.FuncAnimation(
+            fig, rotate, frames=100, interval=50)
         rot_animation.save('rotation3D.gif', dpi=80)
         return 0
-    else :
+    else:
         k_means_3d_reg(data, k, cluster_n, center)
-
-
 
 
 def main():
