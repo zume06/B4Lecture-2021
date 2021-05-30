@@ -198,7 +198,7 @@ def main(args):
             label="centroid",
         )
         plt.legend()
-        plt.savefig(save_fname)
+        plt.savefig(save_fname, transparent=True)
         plt.show()
 
     elif data.shape[1] == 3:
@@ -234,7 +234,7 @@ def main(args):
             label="centroid",
         )
         plt.legend()
-        plt.savefig(save_fname)
+        plt.savefig(save_fname, transparent=True)
 
         def update(i):
             """
