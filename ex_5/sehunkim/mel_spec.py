@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from matplotlib.pyplot import figure
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
@@ -17,10 +18,16 @@ def delta(mfcc):
         delta[i] = p_mfcc[i+1] - p_mfcc[i-1]
     return delta
 
+def calc_Delta(x, k):
+    t= np.arange(-k, k +1)
+    scale = t / np.sum(t ** 2)
+    nx = np.vstack((np.tile(x[0], (k,1)), x, np.tile(x[-1],(k,1))))
+    delta = np.array([np.dot(scale, nx[i-k : i+k+1]) for i in range(k, x.shape[0])])
+    return delta
 
 def mfcc(data, sample_rate, nfilt):
-    frame_size = 0.025
-    frame_stride = 0.01
+    frame_size = 0.025  #[s]
+    frame_stride = 0.01 #[s]
     NFFT = 512
     num_ceps = 12
     pre_emphasis = 0.97
@@ -71,34 +78,48 @@ def mfcc(data, sample_rate, nfilt):
         float).eps, filter_banks)  # Numerical Stability
     filter_banks = 20 * np.log10(filter_banks)  # dB
 
-    mfcc = dct(filter_banks, type=2, axis=1, norm='ortho')[
-        :, 1: (num_ceps + 1)]  # Keep 2-13
+    mfcc = dct(filter_banks, type=2, axis=1, norm='ortho')[:, 1: (num_ceps + 1)]  # Keep 2-13
     mfcc -= (np.mean(mfcc, axis=0) + 1e-8)
 
-    dlt = delta(mfcc)
-    dltdlt = delta(dlt)
+    dlt = calc_Delta(mfcc, k)
+    dltdlt = calc_Delta(dlt, k)
+    #dlt = delta(mfcc)
+    #dltdlt = delta(dlt)
 
-    plt.subplot(4, 1, 1)
+    figure(figsize=(8, 6), dpi=80)
+    plt.subplot(5, 1, 1)
     plt.title('Original Signal')
     plt.specgram(data, Fs=sample_rate)
     plt.colorbar()
     plt.ylabel('Hz')
 
-    plt.subplot(4, 1, 2)
+    plt.subplot(5, 1, 2)
+    librosa.display.specshow(filter_banks.T)
+    plt.yticks([0,10,20,30,40])
+    plt.colorbar()
+    plt.yticks()
+    plt.ylabel('Filter banks')
+
+    plt.subplot(5, 1, 3)
     librosa.display.specshow(mfcc.T)
+    plt.yticks([0,4,8,12])
     plt.colorbar()
     plt.ylabel('MFCC')
 
-    plt.subplot(4, 1, 3)
+    plt.subplot(5, 1, 4)
     librosa.display.specshow(dlt.T)
+    plt.yticks([0,4,8,12])
     plt.colorbar()
     plt.ylabel('Delta')
 
-    plt.subplot(4, 1, 4)
+    plt.subplot(5, 1, 5)
     librosa.display.specshow(dltdlt.T)
+    plt.yticks([0,4,8,12])
     plt.colorbar()
-    plt.ylabel('Delta delta')
+    plt.ylabel('Delta of delta')
     plt.xlabel('time')
+
+    plt.tight_layout()
     plt.savefig("mfcc.png")
 
 
