@@ -41,7 +41,7 @@ def k_meanstt(data, n):
             means_init (ndrray, shape=(cluster_size, dim)): initial value of means
     """
     rng = np.random.default_rng()
-    c = rng.choice(data,)
+    c = rng.choice(data)
     means_init = np.zeros((n, data.shape[1]))
     means_init[0] = c
     D = np.sum((data-c)**2, axis=1)
