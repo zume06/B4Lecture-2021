@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import argparse
+import sys
 
 import numpy as np
 import pandas as pd
@@ -125,24 +126,22 @@ def minimax(data, K):
       
     return
     ----
-    cent:numpy.ndarray
+    cen:numpy.ndarray
          center of cluster
-    clu:numpy.ndarray
-        cluster
     """
     num, dim = data.shape
-    cen = [] #中心のインデックス
-    cen = np.append(cen, random.randint(0, num-1))
+    cidx = [] #中心のインデックス
+    cidx = np.append(cidx, random.randint(0, num-1))
     dis = np.zeros((K, num))
-    cent = np.zeros((K, dim))
+    cen = np.zeros((K, dim))
     for k in range(K):
-        cent[k] = data[int(cen[k])]
-        r = np.sum((data - data[int(cen[k])])**2, axis = 1) #距離計算
+        cen[k] = data[int(cidx[k])]
+        r = np.sum((data - data[int(cidx[k])])**2, axis = 1) #距離計算
         dis[k] =  r #距離保存
         
-        cen = np.append(cen, np.argmax(np.min(dis[:k+1], axis = 0)))  #距離最大の次の中心
-    clu = np.argmin(dis, axis=0)
-    return cent, clu
+        cidx = np.append(cidx, np.argmax(np.min(dis[:k+1], axis = 0)))  #距離最大の次の中心
+    #clu = np.argmin(dis, axis=0)
+    return cen
 
 #kmeans++
 def kplus(data, K):
@@ -156,21 +155,19 @@ def kplus(data, K):
       
     return
     ----
-    cent:numpy.ndarray
+    cen:numpy.ndarray
          center of cluster
-    clu:numpy.ndarray
-        cluster
     """
     num, dim = data.shape
-    cen = [] #中心のインデックス
-    cen = np.append(cen, random.randint(0, num-1))
+    cidx = [] #中心のインデックス
+    cidx = np.append(cidx, random.randint(0, num-1))
     dis = np.zeros((K, num))
-    cent = np.zeros((K, dim))
+    cen = np.zeros((K, dim))
     pr = np.zeros(num)
     for k in range(K):
         #距離計算
-        cent[k] = data[int(cen[k])]
-        r = np.sum((data - data[int(cen[k])])**2, axis = 1) #距離計算
+        cen[k] = data[int(cidx[k])]
+        r = np.sum((data - data[int(cidx[k])])**2, axis = 1) #距離計算
         dis[k] =  r #距離保存
         
         #確率作成
@@ -179,11 +176,43 @@ def kplus(data, K):
         
         #次の中心
         x = np.random.choice(np.arange(num), 1, p=pr)
-        cen = np.append(cen, x)
+        cidx = np.append(cidx, x)
 
-    clu = np.argmin(dis, axis=0)
-    return cent, clu
+    #clu = np.argmin(dis, axis=0)
+    return cen
 
+#LGB法
+def LGB(data, K, cen):
+    """
+    paramerters
+    --
+    data:numpy.ndarray
+         csv data
+    K:int
+      the number of cluster
+    cen:numpy.ndarray
+        center of cluster
+    
+    return
+    ----
+    newcen:numpy.ndarray
+           new center of cluster
+    """
+    #クラスタの中心をふたつに分ける
+    delta = 0.01
+    #cenn = np.zeros(())
+    cen_b = cen-delta
+    cen_a = cen+delta
+    newcen = np.concatenate((cen_b, cen_a))
+    M = newcen.shape[0]
+    #kmeansアルゴリズム
+    newcen, clu = kmean(data, M, newcen)
+    if newcen.shape[0] >= K:
+        newcen = newcen[random.sample(range(len(newcen)), K)]
+        return newcen
+    else:
+        return LGB(data, K, newcen)
+        
 #初期値決定方法
 def method(data, K, mname):
     """
@@ -198,24 +227,25 @@ def method(data, K, mname):
       
     return
     ----
-    cent:numpy.ndarray
+    cen:numpy.ndarray
          center of cluster
-    clu:numpy.ndarray
-        cluster
+    
     """
     if mname == "minimax":
-        cen, clu = minimax(data, K)
+        cen = minimax(data, K)
     elif mname == "kplus":
-        cen, clu = kplus(data, K)
+        cen = kplus(data, K)
     elif mname == "LGB":
-        cen, clu = LBG(data, K)
+        ce = np.zeros((1,2))
+        ce[0] = np.mean(data, axis=0)
+        cen = LGB(data, K, ce)
     else:
         print("error:method name")
-        
-    return cen, clu
+        sys.exit(1)
+    return cen
 
 #kmeanアルゴリズム
-def kmean(data, K, cen, clu):
+def kmean(data, K, cen):
     """
     paramerters
     --
@@ -230,42 +260,49 @@ def kmean(data, K, cen, clu):
       
     return
     ----
-    ncen:numpy.ndarray
-         center of cluster
+    newcen:numpy.ndarray
+           new center of cluster
     clu:numpy.ndarray
         cluster
     """
     num, dim = data.shape
-    clusters = []
     dis = np.zeros((K, num))
+    newcen = np.zeros((K, dim))
     while (True):
-        ncen = np.zeros((K, dim))
-        for k in range(K):
-            ncen[k] = np.mean(data[clu == k]) #重心計算
-            r = np.sum((data - ncen[k])**2, axis = 1) #距離計算
+        for k in range(0, K):
+            r = np.sum((data - cen[k])**2, axis = 1) #距離計算
             dis[k] = r #距離保存
-                       
+            
         clu = np.argmin(dis, axis=0)
-        if np.allclose(cen,ncen) is True:#変化がないなら終了
+        
+        for i in range(0, K):            
+            newcen[i] = np.mean(data[clu == i])
+
+        if np.allclose(cen,newcen) is True:
             break
-        cen = ncen
-    return ncen, clu
+        cen = newcen
+    return newcen, clu
 
 def main(args):
     n = args.fnum
     c = args.clo
     save = args.save
+    methodname = args.method
+
     data = file(n)
     
     #クラスタ計算&描画
-    cen, clu_m = method(data, c)
-    ncen, clu_mk = kmean(data, c, cen, clu_m)
+    cen = method(data, c, methodname)
+    ncen, clu = kmean(data, c, cen)
     if data.shape[1] == 2:
-        scatter_2d(data, save, c, clu_mk)
+        scatter_2d(data, save, c, clu)
     
     elif data.shape[1] == 3:
-        scatter_3d(data, save, c, clu_mk)
+        scatter_3d(data, save, c, clu)
 
+    else:
+        print("error:over dimension")
+        sys.exit(1)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
