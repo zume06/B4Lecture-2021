@@ -3,7 +3,9 @@ import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.axes3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.animation as animation
+# from mpl_toolkits.mplot3d.axes3d import Axes3D
 
 
 def center(S):
@@ -228,18 +230,28 @@ def main():
         fig, ax = plt.subplots()
         for s in S:
             ax.scatter(s[:, 0], s[:, 1])
+        ax.scatter(A[:, 0], A[:, 1], color='black', s=80, label='Codebook')
         ax.set(xlabel='X', ylabel='Y')
+        plt.legend()
         plt.show(block=True)
         fig.savefig(f'./out/clustering_{data_name}_{args.method}_{args.k}.png')
-    # plot 3D
+
+    # plot 3D animation
     else:
         fig = plt.figure()
         ax = Axes3D(fig)
+
         for s in S:
             ax.scatter(s[:, 0], s[:, 1], s[:, 2])
+        ax.scatter(A[:, 0], A[:, 1], A[:, 2], color='black', s=80, label='Codebook')
         ax.set(xlabel='X', ylabel='Y', zlabel='Z')
-        plt.show(block=True)
-        fig.savefig(f'./out/clustering_{data_name}_{args.method}_{args.k}.png')
+        plt.legend()
+        
+        def rotate(angle):
+            ax.view_init(azim=angle)
+        anim = animation.FuncAnimation(
+                fig, rotate, frames=180, interval=50)
+        anim.save(f'./out/clustering_data3_{args.method}_{args.k}.gif', dpi=80)
 
 
 if __name__ == '__main__':
