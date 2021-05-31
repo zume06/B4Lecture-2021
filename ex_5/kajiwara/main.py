@@ -9,6 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import librosa
 
 import kmeans
+import mfcc
 
 TIME_TEMPLATE = '%Y%m%d%H%M%S'
 
@@ -54,13 +55,41 @@ def main(args):
     clf_3 = kmeans.KMeans(n_clusters=4, init='random', max_ite=300, random_state=44)
     pred_3 = clf_3.fit_predict(df3.values)
     df3['pred'] = pred_3
-    print(df3.head())
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
     ax.scatter(df3['x'].values, df3['y'].values, df3['z'].values, c=df3['pred'])
     plt.legend()
     plt.savefig(result_path/'data3.png')
+    plt.clf()
+    plt.close()
+
+    '''mfcc'''
+    win_size = 2048
+    overlap = 0.5
+    bank_size = 20
+
+    _mfcc = mfcc.get_mfcc(wave_data, sr, win_size, overlap, bank_size)
+
+    plt.imshow(_mfcc, cmap='rainbow', aspect='auto', origin='lower')
+    plt.colorbar()
+    plt.savefig(result_path/'mfcc.png')
+    plt.clf()
+    plt.close()
+
+    dmfcc = mfcc.calc_delta(_mfcc)
+    plt.imshow(dmfcc, cmap='rainbow', aspect='auto', origin='lower')
+    plt.colorbar()
+    plt.savefig(result_path/'dmfcc.png')
+    plt.clf()
+    plt.close()
+
+    ddmfcc = mfcc.calc_delta(dmfcc)
+    plt.imshow(ddmfcc, cmap='rainbow', aspect='auto', origin='lower')
+    plt.colorbar()
+    plt.savefig(result_path/'ddmfcc.png')
+    plt.clf()
+    plt.close()
 
 
 if __name__ == "__main__":
