@@ -58,7 +58,7 @@ def scatter_2d(data, save, K, clu):
     plt.grid() 
     #plt.legend() #凡例の追加
     plt.tight_layout()
-    #plt.savefig(save)
+    plt.savefig(save)
     plt.show()
 
 #3次元散布図
@@ -111,7 +111,7 @@ def scatter_3d(data, save, K, clu):
     ax2.view_init(elev=0, azim=-90) #回転
     ax3.view_init(elev=0, azim=0)
     plt.tight_layout()
-    #plt.savefig(save)
+    plt.savefig(save)
     plt.show()
 
 #ミニマックス法

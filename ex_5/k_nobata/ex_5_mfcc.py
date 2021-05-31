@@ -120,7 +120,7 @@ def delta(data):
     Return
     ---
     delta : numpy.ndarray
-        delta mfcc
+        delta data
     ---
     """
 
@@ -132,6 +132,46 @@ def delta(data):
         delta[j] = np.dot(k, new_data[j:j+2*i+1]) / np.sum(np.square(k))
 
     return delta
+
+def png(mfcc, d, dd, Ts):
+    """
+    Parameter
+    ---
+    mfcc:numpy.ndarray
+         mfcc
+    d : numpy.ndarray
+        Δmfcc
+    dd : numpy.ndarray
+         ΔΔmfcc
+    Ts:float
+       time of sound data
+    ---
+    
+    """
+
+    fig = plt.figure(figsize=(10,5))
+    
+    ax1 = fig.add_subplot(311)
+    ax2 = fig.add_subplot(312)
+    ax3 = fig.add_subplot(313)
+
+    img = ax1.imshow(mfcc.T, extent=[0, Ts, 0, 12], aspect="auto", origin="lower")
+    ax1.set_ylabel("MFCC", fontsize=15)
+    fig.colorbar(img,  ax=ax1)
+    
+    img = ax2.imshow(d.T, extent=[0, Ts, 0, 12], aspect="auto", origin="lower")
+    ax2.set_ylabel("ΔMFCC", fontsize=15)
+    fig.colorbar(img, ax=ax2)
+
+    img = ax3.imshow(dd.T, extent=[0, Ts, 0, 12], aspect="auto", origin="lower")
+    ax3.set_ylabel("ΔΔMFCC", fontsize=15)
+    fig.colorbar(img, ax=ax3)
+    
+    plt.xlabel("time[s]", fontsize=15)
+    plt.tight_layout()
+    plt.savefig("mfcc.png")
+    plt.show()
+    plt.close()
 
 def main(args):
     #ファイル読込
@@ -180,38 +220,17 @@ def main(args):
     #savefig("melfilterbank.png")
     plt.show()
 
-    #MFCCの描画
-    plt.figure()
-    plt.imshow(mfcc.T, extent=[0, Ts, 0, 12], aspect="auto", origin="lower")
-    plt.xlabel("time[s]", fontsize=15)
-    plt.ylabel("MFCC", fontsize=15)
+    plt.figure(figsize=(10,5))
+    plt.specgram(data, Fs=sr, scale_by_freq="True")
     plt.colorbar()
-    plt.tight_layout()
-    plt.savefig("mfcc.png")
-    #plt.show()
-    plt.close()
-
-    #ΔMFFCの描画
-    plt.figure()
-    plt.imshow(d.T, extent=[0, Ts, 0, 12], aspect="auto", origin="lower")
+    plt.title("Spectrogram", fontsize=15)
     plt.xlabel("time[s]", fontsize=15)
-    plt.ylabel("ΔMFCC", fontsize=15)
-    plt.colorbar()
+    plt.ylabel("frequency[Hz]", fontsize=15)
     plt.tight_layout()
-    plt.savefig("dmfcc.png")
-    #plt.show()
+    plt.savefig("spectrogram.png")
+    plt.show()
     plt.close()
-
-    #ΔΔMFFCの描画
-    plt.figure()
-    plt.imshow(dd.T, extent=[0, Ts, 0, 12], aspect="auto", origin="lower")
-    plt.xlabel("time[s]", fontsize=15)
-    plt.ylabel("ΔΔMFCC", fontsize=15)
-    plt.colorbar()
-    plt.tight_layout()
-    plt.savefig("ddmfcc.png")
-    #plt.show()
-    plt.close()
+    png(mfcc, d, dd, Ts)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
