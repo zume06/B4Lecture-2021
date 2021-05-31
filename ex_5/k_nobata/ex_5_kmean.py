@@ -57,7 +57,7 @@ def scatter_2d(data, save, K, clu):
     plt.grid() 
     #plt.legend() #凡例の追加
     plt.tight_layout()
-    plt.savefig(save)
+    #plt.savefig(save)
     plt.show()
 
 #3次元散布図
@@ -110,7 +110,7 @@ def scatter_3d(data, save, K, clu):
     ax2.view_init(elev=0, azim=-90) #回転
     ax3.view_init(elev=0, azim=0)
     plt.tight_layout()
-    plt.savefig(save)
+    #plt.savefig(save)
     plt.show()
 
 #ミニマックス法
@@ -143,6 +143,76 @@ def minimax(data, K):
         cen = np.append(cen, np.argmax(np.min(dis[:k+1], axis = 0)))  #距離最大の次の中心
     clu = np.argmin(dis, axis=0)
     return cent, clu
+
+#kmeans++
+def kplus(data, K):
+    """
+    paramerters
+    --
+    data:numpy.ndarray
+         csv data
+    K:int
+      the number of cluster
+      
+    return
+    ----
+    cent:numpy.ndarray
+         center of cluster
+    clu:numpy.ndarray
+        cluster
+    """
+    num, dim = data.shape
+    cen = [] #中心のインデックス
+    cen = np.append(cen, random.randint(0, num-1))
+    dis = np.zeros((K, num))
+    cent = np.zeros((K, dim))
+    pr = np.zeros(num)
+    for k in range(K):
+        #距離計算
+        cent[k] = data[int(cen[k])]
+        r = np.sum((data - data[int(cen[k])])**2, axis = 1) #距離計算
+        dis[k] =  r #距離保存
+        
+        #確率作成
+        pr = np.min(dis[:k+1], axis = 0)
+        pr = pr / np.sum(pr)
+        
+        #次の中心
+        x = np.random.choice(np.arange(num), 1, p=pr)
+        cen = np.append(cen, x)
+
+    clu = np.argmin(dis, axis=0)
+    return cent, clu
+
+#初期値決定方法
+def method(data, K, mname):
+    """
+    paramerters
+    --
+    data:numpy.ndarray
+         csv data
+    K:int
+      the number of cluster
+    mname:str
+      method name
+      
+    return
+    ----
+    cent:numpy.ndarray
+         center of cluster
+    clu:numpy.ndarray
+        cluster
+    """
+    if mname == "minimax":
+        cen, clu = minimax(data, K)
+    elif mname == "kplus":
+        cen, clu = kplus(data, K)
+    elif mname == "LGB":
+        cen, clu = LBG(data, K)
+    else:
+        print("error:method name")
+        
+    return cen, clu
 
 #kmeanアルゴリズム
 def kmean(data, K, cen, clu):
@@ -188,7 +258,7 @@ def main(args):
     data = file(n)
     
     #クラスタ計算&描画
-    cen, clu_m = minimax(data, c)
+    cen, clu_m = method(data, c)
     ncen, clu_mk = kmean(data, c, cen, clu_m)
     if data.shape[1] == 2:
         scatter_2d(data, save, c, clu_mk)
@@ -202,6 +272,7 @@ if __name__ == "__main__":
     parser.add_argument("--fnum", default="1")
     parser.add_argument("--clo", default=4)
     parser.add_argument("--save", default="data1.png")
+    parser.add_argument("--method", default="minimax")
     args = parser.parse_args()
 
     main(args)
