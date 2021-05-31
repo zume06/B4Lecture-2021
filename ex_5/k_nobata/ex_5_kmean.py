@@ -276,7 +276,7 @@ def kmean(data, K, cen):
         clu = np.argmin(dis, axis=0)
         
         for i in range(0, K):            
-            newcen[i] = np.mean(data[clu == i])
+            newcen[i] = data[clu==i].mean(axis=0)
 
         if np.allclose(cen,newcen) is True:
             break
