@@ -60,7 +60,7 @@ def delta(input, neighbor):
     return d
 
 
-if __name__ == "__main__":
+def main():
     # process args
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("sc", type=str, help="input filename with extension .wav")
@@ -102,3 +102,6 @@ if __name__ == "__main__":
     fig.colorbar(img, ax=ax[3])
     
     plt.show()
+
+if __name__ == "__main__":
+    main()

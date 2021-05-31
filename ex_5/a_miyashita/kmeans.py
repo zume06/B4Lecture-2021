@@ -112,7 +112,7 @@ def k_means(data, means_init, one_hot=False):
     return means, labels
 
 
-if __name__ == "__main__":
+def main():
     # process args
     parser = argparse.ArgumentParser(description="Split datas into cluster")
     parser.add_argument("sc", type=str, help="input filename with extension .csv")
@@ -148,3 +148,6 @@ if __name__ == "__main__":
     ax.set_ylabel('$x_2$')
     # ax.set_zlabel('$x_3$')
     plt.show()
+
+if __name__ == "__main__":
+    main()
