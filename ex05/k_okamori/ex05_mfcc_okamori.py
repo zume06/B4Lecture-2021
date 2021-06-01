@@ -99,11 +99,12 @@ class Mfcc:
 
     # 結果のプロット
     def draw_spec(self):
-        self.fig = plt.figure(figsize=(6.4, 6.4))  # グラフ領域の確保
-        ax1 = self.fig.add_subplot(411)  # Original Signal
-        ax2 = self.fig.add_subplot(412)  # MFCC
-        ax3 = self.fig.add_subplot(413)  # dMFCC
-        ax4 = self.fig.add_subplot(414)  # ddMFCC
+        self.fig = plt.figure(figsize=(8.0, 10.0))  # グラフ領域の確保
+        ax1 = self.fig.add_subplot(511)  # Original Signal
+        ax2 = self.fig.add_subplot(512)  # Mell Filter Bank
+        ax3 = self.fig.add_subplot(513)  # MFCC
+        ax4 = self.fig.add_subplot(514)  # dMFCC
+        ax5 = self.fig.add_subplot(515)  # ddMFCC
         wave_length = len(self.wave) // self.samplerate  # 音源データの長さ
 
         im1 = ax1.imshow(self.spec, extent=[0, wave_length, 0, self.samplerate / 2],
@@ -113,26 +114,32 @@ class Mfcc:
         ax1.set_xlabel("time[s]")         # x軸ラベルの追加
         ax1.set_ylabel("Frequency[kHz]")  # y軸ラベルの追加
 
-        im2 = ax2.imshow(self.mfcc, extent=[0, wave_length, 0, MFCC_DIM],
-                         cmap="rainbow", aspect="auto", origin="lower")  # スペクトログラムの描画
-        self.fig.colorbar(im2, ax=ax2)
-        ax2.set_title("MFCC")             # タイトルの追加
-        ax2.set_xlabel("time[s]")         # x軸ラベルの追加
-        ax2.set_ylabel("MFCC")            # y軸ラベルの追加
+        for i in range(self.mel_filter_bank.shape[0]):
+            ax2.plot(np.arange(0, self.samplerate // 2, self.samplerate // 2 /
+                     self.mel_filter_bank.shape[1]), self.mel_filter_bank[i])  # プロット
+        ax2.set_title("Mel Filter Bank")   # タイトルの追加
+        ax2.set_xlabel("Frequency[Hz]")         # x軸ラベルの追加
 
-        im3 = ax3.imshow(self.d_mfcc, extent=[0, wave_length, 0, MFCC_DIM],
+        im3 = ax3.imshow(self.mfcc, extent=[0, wave_length, 0, MFCC_DIM],
                          cmap="rainbow", aspect="auto", origin="lower")  # スペクトログラムの描画
         self.fig.colorbar(im3, ax=ax3)
-        ax3.set_title("ΔMFCC")            # タイトルの追加
+        ax3.set_title("MFCC")             # タイトルの追加
         ax3.set_xlabel("time[s]")         # x軸ラベルの追加
-        ax3.set_ylabel("ΔMFCC")           # y軸ラベルの追加
+        ax3.set_ylabel("MFCC")            # y軸ラベルの追加
 
-        im4 = ax4.imshow(self.dd_mfcc, extent=[0, wave_length, 0, MFCC_DIM],
+        im4 = ax4.imshow(self.d_mfcc, extent=[0, wave_length, 0, MFCC_DIM],
                          cmap="rainbow", aspect="auto", origin="lower")  # スペクトログラムの描画
         self.fig.colorbar(im4, ax=ax4)
-        ax4.set_title("ΔΔMFCC")           # タイトルの追加
+        ax4.set_title("ΔMFCC")            # タイトルの追加
         ax4.set_xlabel("time[s]")         # x軸ラベルの追加
-        ax4.set_ylabel("ΔΔMFCC")          # y軸ラベルの追加
+        ax4.set_ylabel("ΔMFCC")           # y軸ラベルの追加
+
+        im5 = ax5.imshow(self.dd_mfcc, extent=[0, wave_length, 0, MFCC_DIM],
+                         cmap="rainbow", aspect="auto", origin="lower")  # スペクトログラムの描画
+        self.fig.colorbar(im5, ax=ax5)
+        ax5.set_title("ΔΔMFCC")           # タイトルの追加
+        ax5.set_xlabel("time[s]")         # x軸ラベルの追加
+        ax5.set_ylabel("ΔΔMFCC")          # y軸ラベルの追加
 
         self.fig.tight_layout()  # レイアウト調整
 

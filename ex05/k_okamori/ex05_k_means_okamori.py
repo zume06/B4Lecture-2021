@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import sys
+import argparse
 
 
 class ClusterByKmeans:  # k-means法を実装するクラス
@@ -10,7 +11,8 @@ class ClusterByKmeans:  # k-means法を実装するクラス
     #   data: csvデータ
     #   n_divide: 分割数
     #   n_trial: 初期値を決める試行回数
-    def __init__(self, data, n_divide, n_trial):
+    def __init__(self, fname, data, n_divide, n_trial):
+        self.fname = fname
         self.data = data
         self.n_data = self.data.shape[0]  # データ数
         self.n_divide = n_divide
@@ -52,7 +54,7 @@ class ClusterByKmeans:  # k-means法を実装するクラス
         # 重心が変化しなくなるまで続ける
         while is_changed:
             is_changed = False
-            default_previous = self.default  # 前回の重心を記録
+            default_previous = np.copy(self.default)  # 前回の重心を記録
 
             # 最も近い重心のタグをつける
             for i in range(self.n_data):
@@ -84,6 +86,8 @@ class ClusterByKmeans:  # k-means法を実装するクラス
         # 重心の描画
         ax.scatter(self.default[:, 0], self.default[:, 1])
 
+        ax.set_title(f"data = {self.fname}, n = {self.n_divide}")  # タイトルの追加
+
 
 class ClusterByKmeans3D(ClusterByKmeans):  # k-means法を実装するクラス(3次元)
 
@@ -100,28 +104,38 @@ class ClusterByKmeans3D(ClusterByKmeans):  # k-means法を実装するクラス(
         # 重心の描画
         ax.scatter(self.default[:, 0], self.default[:, 1], self.default[:, 2])
 
+        ax.set_title(f"data = {self.fname}, n = {self.n_divide}")  # タイトルの追加
+
 # main
 
 
-def main():
-    csv = sys.argv[1]  # 元データ (CSV)
-    n_divide = int(sys.argv[2])  # 分割する個数
-    n_trial = int(sys.argv[3])  # 初期値決定の試行回数
+def main(args):
+    csv = args.fname  # 元データ (CSV)
+    n_divide = args.n_divide  # 分割する個数
+    n_trial = args.n_trial  # 初期値決定の試行回数
 
     data = np.loadtxt(fname=csv, dtype="float",
                       delimiter=',', skiprows=1)  # csv の読み込み
 
     if data.shape[1] == 2:  # 2次元の場合
-        kmeans = ClusterByKmeans(data, n_divide, n_trial)
+        kmeans = ClusterByKmeans(csv, data, n_divide, n_trial)
     elif data.shape[1] == 3:  # 3次元の場合
-        kmeans = ClusterByKmeans3D(data, n_divide, n_trial)
+        kmeans = ClusterByKmeans3D(csv, data, n_divide, n_trial)
+    else:
+        print(f"対応していないデータ形式です．")  # エラー表示
+        sys.exit(1)  # プログラム終了
 
-    if "kmeans" in locals():
-        kmeans.set_default()  # 初期値の決定
-        kmeans.divide_cluster()  # クラスタ分割
-        kmeans.plot()  # 結果のプロット
-        plt.savefig("ex05_k_means(" + csv + ").png")  # 出力ファイルの保存
+    kmeans.set_default()  # 初期値の決定
+    kmeans.divide_cluster()  # クラスタ分割
+    kmeans.plot()  # 結果のプロット
+    plt.savefig(f"ex05_k_means({csv}).png")  # 出力ファイルの保存
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="k-means 法によるクラスタ分割")
+    parser.add_argument("fname", type=str, help="ファイル名")
+    parser.add_argument("n_divide", type=int, help="分割する個数")
+    parser.add_argument("n_trial", type=int, help="初期値決定の試行回数")
+    args = parser.parse_args()
+
+    main(args)
