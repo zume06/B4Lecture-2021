@@ -4,6 +4,18 @@ import sys
 
 
 def minimax(data, c_size):
+    """
+    Generate an init code book by minimax
+
+    Parameters
+    ----------
+    data : input data
+    c_size : number of cluster
+
+    returns
+    -------
+    init code book
+    """
     data_size, n_features = data.shape
     init_codebook = np.zeros((c_size, n_features))
     rng = np.random.default_rng()
@@ -18,14 +30,28 @@ def minimax(data, c_size):
 
 
 def kmeans(data, c_size, init_codebook):
+    """
+    Clustering by k-mean
+
+    Parameters
+    ----------
+    data : input data
+    c_size : number of cluster
+    init_codebook : init code book
+
+    returns
+    -------
+    new_codebooks : codebook
+    cluster :  label of cluster assigned to each data
+    """
     data_size, n_features = data.shape
     cluster = np.zeros(data_size)
     new_codebooks = np.zeros((c_size, n_features))
     codebooks = init_codebook
     while 1:
-        for i in range(data_size):
-            distances = np.linalg.norm(data[i] - codebooks, axis=1)
-            cluster[i] = np.argsort(distances)[0]
+        differences = data[np.newaxis, :, :] - codebooks[:, np.newaxis, :]
+        distances = np.linalg.norm(differences, axis=2)
+        cluster = np.argmin(distances, axis=0)
         for k in range(c_size):
             new_codebooks[k] = data[cluster == k].mean(axis=0)
         if np.allclose(codebooks, new_codebooks) is True:
@@ -38,7 +64,7 @@ def main():
     args = sys.argv
     data = np.loadtxt(fname=args[1], delimiter=",", skiprows=1)
 
-    c_size = 4
+    c_size = int(args[3])
     init_codebook = minimax(data, c_size)
     codebooks, cluster = kmeans(data, c_size, init_codebook)
 
@@ -48,6 +74,7 @@ def main():
     for i in range(codebooks.shape[0]):
         plt.scatter(data[:, 0][cluster == i], data[:, 1][cluster == i])
 
+    # for data3
     """
     ax = fig.add_subplot(111, projection="3d")
     for i in range(codebooks.shape[0]):
@@ -60,7 +87,8 @@ def main():
     ax.set_ylabel("y")
     # ax.set_zlabel("z")
     plt.title(args[2])
-    plt.savefig(args[2])
+    # plt.savefig(args[2])
+    plt.show()
     plt.clf
     plt.close
 
