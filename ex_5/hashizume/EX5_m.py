@@ -86,28 +86,28 @@ def main():
 
     spec, mspec_db, mfcc = gene_mfcc(s, fs, N, filterbank)
 
-    librosa.display.specshow(mfcc, sr=fs, x_axis="time")
+    librosa.display.specshow(mfcc, sr=fs, x_axis="time", y_axis="log")
     plt.colorbar()
+    plt.title("mfcc")
     plt.savefig("mfcc")
     plt.clf
     plt.close
 
-    """
     librosa.display.specshow(
         librosa.amplitude_to_db(spec), sr=fs, x_axis="time", y_axis="log"
     )
     plt.colorbar()
+    plt.title("spectrogram")
     plt.savefig("spec")
     plt.clf
     plt.close
-    """
-    """
+
     librosa.display.specshow(mspec_db, sr=fs, x_axis="time", y_axis="log")
     plt.colorbar()
+    plt.title("mel-spectrogram")
     plt.savefig("melspec")
     plt.clf
     plt.close
-    """
 
 
 if __name__ == "__main__":
