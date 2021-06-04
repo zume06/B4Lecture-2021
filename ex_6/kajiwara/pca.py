@@ -10,15 +10,22 @@ class PCA:
         self.contribution_rate = None
 
     def fit(self, X):
+        '''
+        X: (dim, length)
+        '''
+
         err_msg = 'The dimensions are different, expected {}, but {} given'.format(
             X.shape[1], self.dim
         )
         assert X.shape[1] == self.dim, err_msg
 
-        # data_length = X.shape[0]
-
-        cov_matrics = np.cov(X, bias=True)
+        cov_matrics = np.cov(X.T, bias=True)
         self.eigen_value, self.eigen_vector = np.linalg.eig(cov_matrics)
+        self.eigen_vector = self.eigen_vector
+
+        # idx = np.argsort(self.eigen_value)[::-1]
+        # self.eigen_value = self.eigen_value[idx]
+        # self.eigen_vector = self.eigen_vector[:, idx]
 
         contribution_rate = np.zeros(self.dim)
         for i in range(self.dim):
@@ -28,7 +35,8 @@ class PCA:
         return self
 
     def transform(self, X):
-        pass
+        return np.dot(X, self.eigen_vector)
 
     def fit_transform(self, X):
-        pass
+        self = self.fit(X)
+        return np.dot(X, self.eigen_vector)
