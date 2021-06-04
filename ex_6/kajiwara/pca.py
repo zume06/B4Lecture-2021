@@ -2,6 +2,20 @@ import numpy as np
 
 
 class PCA:
+    """Principal component analysis (PCA)
+
+    Attributes
+    ----------
+    dim: int
+        dimention size of input data
+    eigen_value: ndarray (dim)
+        eigen vaules of covariance matrix
+    eigen_vector: ndarray (dim, dim)
+        eigen vector of covariance matrix
+    contribution_rate: ndarray (dim, )
+        contribution rate of eigen value
+    """
+
     def __init__(self, dim):
         self.dim = dim
 
@@ -10,9 +24,18 @@ class PCA:
         self.contribution_rate = None
 
     def fit(self, X):
-        '''
-        X: (dim, length)
-        '''
+        """
+        apply PCA to input data
+
+        Parameters
+        ----------
+        X: ndarray (dim, n)
+            input data
+
+        Returns
+        -------
+        self: self instance
+        """
 
         err_msg = 'The dimensions are different, expected {}, but {} given'.format(
             X.shape[1], self.dim
@@ -35,8 +58,39 @@ class PCA:
         return self
 
     def transform(self, X):
-        return np.dot(X, self.eigen_vector)
+        """
+        transform input data with transformation matrics (eigen_vector)
+
+        Parameters
+        ----------
+        X: ndarray (dim, n)
+            input data
+
+        Returns
+        -------
+        transformed: ndarray
+            transformed data
+        """
+
+        transformed = np.dot(X, self.eigen_vector)
+        return transformed
 
     def fit_transform(self, X):
+        """
+        apply PCA to input data and
+        transform input data with transformation matrics (eigen_vector)
+
+        Parameters
+        ----------
+        X: ndarray (dim, n)
+            input data
+
+        Returns
+        -------
+        transformed: ndarray
+            transformed data
+        """
+
         self = self.fit(X)
-        return np.dot(X, self.eigen_vector)
+        transformed = np.dot(X, self.eigen_vector)
+        return transformed
