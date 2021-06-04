@@ -30,16 +30,19 @@ def main(args):
     data3 = df3.values
 
     # data1.csv
-    pca1 = pca.PCA()
+    pca1 = pca.PCA(dim=data1.shape[1])
     pca1.fit(data1)
+    print(pca1.contribution_rate)
 
     # data2.csv
-    pca2 = pca.PCA()
+    pca2 = pca.PCA(dim=data2.shape[1])
     pca2.fit(data2)
+    print(pca2.contribution_rate)
 
     # data3.csv
-    pca3 = pca.PCA()
+    pca3 = pca.PCA(dim=data3.shape[1])
     pca3.fit(data3)
+    print(pca3.contribution_rate)
 
 
 if __name__ == "__main__":
