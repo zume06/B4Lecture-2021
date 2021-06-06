@@ -202,6 +202,7 @@ def main(args):
         point = [np.where(cum_cont_rate < 0.9, 1, cum_cont_rate).argmin()]
         point.append(cum_cont_rate[point[0]])
         point[0] += 1
+        print(point)
 
         fig = plt.figure()
         fig.add_subplot(
