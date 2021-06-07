@@ -21,12 +21,17 @@ def pca(data):
                contribution rate
     """
 
-    data_norm = StandardScaler().fit_transform(data)
-    cov_matrix = np.cov(data_norm, rowvar=False)
+    # data standardization
+    data_std = StandardScaler().fit_transform(data)
+    # calc covariance matrix
+    cov_matrix = np.cov(data_std, rowvar=False)
+    # calc eigenvalues and eigenvectors
     eig_val, eig_vec = np.linalg.eigh(cov_matrix)
     
+    # sort data
     eig_val = np.sort(np.abs(eig_val))[:: -1]
     eig_vec = eig_vec[:, np.argsort(np.abs(eig_val))[::-1]]
+    # calc contribution rate
     con_rate = eig_val / sum(eig_val)
     
     return eig_vec, con_rate
