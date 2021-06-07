@@ -59,6 +59,14 @@ def plot3d(data):
         fig, rotate, frames=100, interval=30)
     rot_animation.save('rotation3D.gif', dpi=80)
 
+def plot_contrib(contribution_rate):
+    plt.plot(contribution_rate[:10])
+    plt.title('contribution rate')
+    plt.xlabel('eigen vectors')
+    plt.ylabel('contribution rate')
+    plt.savefig("contribution_rate.png")
+    plt.clf()
+
 
 def pcd(data):
     """
@@ -76,10 +84,8 @@ def pcd(data):
     X = data - avg
     cov = np.dot(X.T, X) / len(X)
     eig_val, eig_vec = np.linalg.eig(cov)
-    print(eig_val, eig_vec)
     eig_vec = eig_vec[:, np.argsort(eig_val)[::-1]]
     eig_val = np.sort(eig_val)[::-1]
-    print(eig_val, eig_vec)
     contribution_rate = np.array([eig_val[i]/sum(eig_val)
                                   for i in range(len(eig_val))])
 
@@ -146,7 +152,7 @@ def main():
         plot3d(data)
 
     elif dimension > 3:
-        ploteig(eig_val)
+        plot_contrib(contribution_rate)
         plt.scatter(np.dot(data, eig_vec[0]), np.dot(data, eig_vec[1]))
         plt.savefig("transformed.png")
 
