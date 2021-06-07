@@ -194,6 +194,7 @@ def cep_m(data, lif):
     
     return cep_env
 
+#レビンソンダービン
 def LevinsonDurbin(r, order):
     """
     pareameters
@@ -312,9 +313,9 @@ def spe(log, cep, lpc, F_size, sr, lif, deg):
     plt.close()
 
 def main(args):
-    #fname = "/Users/nobatakoki/B4輪行/ccnobata/新規録音.wav"
-    fname = args.fname
-    data, sr = librosa.load(fname,sr=16000)    
+    #f_name = "/Users/nobatakoki/B4輪行/ccnobata/新規録音.wav"
+    f_name = args.fname
+    data, sr = librosa.load(f_name,sr=16000)    
 
     #基本周波数計算用
     F_size = 1024 #frame size
@@ -345,7 +346,7 @@ def main(args):
     cep = cep_m(windata, lif)
     lpc = lpc_m(windata, deg, F_size)
     
-    spe(log, cep, lpc, F_size, sr, lif, deg)
+    spe(log, cep, lpc, F_size, sr)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
