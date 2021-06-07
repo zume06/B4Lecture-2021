@@ -96,13 +96,24 @@ def main():
 
     # in the case of 4 dimensions or more
     else:
+        flag = 1
         tot_rate = 0
+        rate_list = []
         for i in range(len(con_rate)):
             tot_rate += con_rate[i]
+            rate_list.append(tot_rate)
             # check contribution rate
-            if tot_rate >= 0.9:
+            if tot_rate >= 0.9 and flag == 1:
                 dim = i + 1
-                break
+                flag = 0
+        
+        fig = plt.figure()
+        plt.plot(range(1, len(con_rate)+1), rate_list)
+        plt.hlines([0.9], 1, 100, color="orange", linestyles='dashed')
+        plt.vlines([dim], 0, 1, color="orange", linestyles='dashed')
+        plt.show(block=True)
+        fig.savefig('./out/data3.png')
+
         print(f'Can be compressed up to {dim} dimensions! (The original data is {data.shape[1]} dimensions.)')
 
 
