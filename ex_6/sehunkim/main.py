@@ -159,6 +159,14 @@ def main():
         plt.xlabel('1st eigen vector')
         plt.ylabel('2nd eigen vector')
         plt.savefig("transformed.png")
+        sum_contrib=0
+        for i in range(len(contribution_rate)):
+            sum_contrib += contribution_rate[i]
+            if sum_contrib > 0.9:
+                print("dimention needed to express contribution rate > 90% :  ",i+1)
+                break
+        
+
 
 
 if __name__ == "__main__":
