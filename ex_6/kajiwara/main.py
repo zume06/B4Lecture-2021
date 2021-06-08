@@ -103,6 +103,7 @@ def main(args):
 
     plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
     plt.plot([0] + cumsum, "-o")
+    plt.title('Cumulative contribution rate')
     plt.xlabel("Number of principal components")
     plt.ylabel("Cumulative contribution rate")
     plt.grid()
