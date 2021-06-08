@@ -37,10 +37,7 @@ class PCA:
         self: self instance
         """
 
-        err_msg = 'The dimensions are different, expected {}, but {} given'.format(
-            X.shape[1], self.dim
-        )
-        assert X.shape[1] == self.dim, err_msg
+        assert X.shape[1] == 1, f'The dimensions are different, expected {X.shape[1]}, but {self.dim} given'
 
         cov_matrics = np.cov(X.T, bias=True)
         self.eigen_value, self.eigen_vector = np.linalg.eig(cov_matrics)
