@@ -100,7 +100,7 @@ def main(args):
 if __name__ == "__main__":
     description = 'Example: python main.py ./result'
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-rs', '--result-path', help='path to save the result')
+    parser.add_argument('-rs', '--result-path', default='./result', help='path to save the result')
 
     args = parser.parse_args()
 
