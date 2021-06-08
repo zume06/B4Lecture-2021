@@ -59,6 +59,7 @@ def plot3d(data):
         fig, rotate, frames=100, interval=30)
     rot_animation.save('rotation3D.gif', dpi=80)
 
+
 def plot_contrib(contribution_rate):
     plt.plot(contribution_rate)
     plt.title('contribution rate')
@@ -82,7 +83,7 @@ def pcd(data):
     """
     avg = np.average(data, axis=0)
     X = data - avg
-    std_dev = np.std(data, axis = 0)
+    std_dev = np.std(data, axis=0)
     X /= std_dev
     cov = np.dot(X.T, X) / len(X)
     eig_val, eig_vec = np.linalg.eig(cov)
@@ -102,7 +103,7 @@ def main():
     data = csv_open(args.filename)
     dimension = np.shape(data)[1]
     eig_val, eig_vec, contribution_rate = pcd(data)
-    
+
     if dimension == 2:
         x = np.arange(min(data[:, 0]), max(data[:, 0]), 0.01)
         y1 = eig_vec[1][0] / eig_vec[0][0] * x
@@ -151,7 +152,7 @@ def main():
         plt.scatter(np.dot(data, eig_vec[0]), np.dot(data, eig_vec[1]))
         plt.savefig("transformed.png")
 
-        #plot3d(data)
+        # plot3d(data)
 
     elif dimension > 3:
         plot_contrib(contribution_rate)
@@ -159,13 +160,14 @@ def main():
         plt.xlabel('1st eigen vector')
         plt.ylabel('2nd eigen vector')
         plt.savefig("transformed.png")
-        sum_contrib=0
+        sum_contrib = 0
         for i in range(len(contribution_rate)):
             sum_contrib += contribution_rate[i]
             if sum_contrib > 0.9:
-                print("dimention needed to express contribution rate > 90% :  ",i+1)
+                print("dimention needed to express contribution rate > 90% :  ", i+1)
                 break
-        
+        for i in range(len(eig_val)-1):
+            print("inner product of eigen vector[%d],[%d]" % (i, i +1), round(np.dot(eig_vec[i], eig_vec[i+1].T), -10))
 
 
 
