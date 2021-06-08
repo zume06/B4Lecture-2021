@@ -110,6 +110,17 @@ def main(args):
     plt.clf()
     plt.close()
 
+    data3_transformed = pca3.transform(data3)[:, :2]
+
+    plt.axes().set_aspect('equal')
+    plt.scatter(data3_transformed[:, 0], data3_transformed[:, 1], label='data3 transformed')
+    plt.title('data3 transformed')
+    plt.xlabel('pca1')
+    plt.ylabel('pca2')
+    plt.savefig(result_path/'data3_transformed.png')
+    plt.clf()
+    plt.close()
+
 
 if __name__ == "__main__":
     description = 'Example: python main.py ./result'
