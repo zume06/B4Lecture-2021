@@ -5,6 +5,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
 
 import pca
@@ -18,10 +19,7 @@ def main(args):
         timestamp = datetime.now().strftime(TIME_TEMPLATE)
         result_path = result_path/timestamp
         if not result_path.exists():
-            try:
-                result_path.mkdir(parents=True)
-            except Exception as err:
-                print(err)
+            result_path.mkdir(parents=True)
 
     # loading data
     df1 = pd.read_csv('../data1.csv', header=None)
@@ -75,12 +73,11 @@ def main(args):
     ax.set_zlabel("x2")
     ax.scatter(data2[:, 0], data2[:, 1], data2[:, 2], label='data2')
     plt.legend()
-    plt.savefig(result_path/'data2,png')
+    plt.savefig(result_path/'data2.png')
     plt.clf()
     plt.close()
 
     data2_transformed = pca2.transform(data2)[:, :2]
-    print(data2_transformed.shape)
 
     plt.axes().set_aspect('equal')
     plt.scatter(data2_transformed[:, 0], data2_transformed[:, 1], label='data2 transformed')
@@ -94,7 +91,24 @@ def main(args):
     # data3.csv
     pca3 = pca.PCA(dim=data3.shape[1])
     pca3.fit(data3)
-    print("pca3 contribution rate:", pca3.contribution_rate)
+
+    cumsum = list(np.cumsum(pca3.contribution_rate))
+    need_dim = 1
+    for c in cumsum:
+        if c > 0.9:
+            break
+        need_dim += 1
+
+    print(f'need dimmentions: {need_dim}')
+
+    plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
+    plt.plot([0] + cumsum, "-o")
+    plt.xlabel("Number of principal components")
+    plt.ylabel("Cumulative contribution rate")
+    plt.grid()
+    plt.savefig(result_path/'data3.png')
+    plt.clf()
+    plt.close()
 
 
 if __name__ == "__main__":

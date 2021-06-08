@@ -46,10 +46,6 @@ class PCA:
         self.eigen_value, self.eigen_vector = np.linalg.eig(cov_matrics)
         self.eigen_vector = self.eigen_vector
 
-        # idx = np.argsort(self.eigen_value)[::-1]
-        # self.eigen_value = self.eigen_value[idx]
-        # self.eigen_vector = self.eigen_vector[:, idx]
-
         contribution_rate = np.zeros(self.dim)
         for i in range(self.dim):
             contribution_rate[i] = self.eigen_value[i] / np.sum(self.eigen_value)
